@@ -1,0 +1,35 @@
+# Secrets and local config
+.env
+.env.*
+!.env.example
+
+# Git and IDE
+.git
+.gitignore
+.cursor
+*.md
+!README.md
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.venv
+venv
+env
+
+# Tests and dev
+tests/
+*.test
+pytest.ini
+.coverage
+htmlcov/
+
+# Docs (optional: remove if you want them in image)
+docs/
+
+# Misc
+*.csv
+*.log
+.DS_Store

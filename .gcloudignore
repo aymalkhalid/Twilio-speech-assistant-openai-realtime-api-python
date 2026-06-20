@@ -1,0 +1,29 @@
+# Excluded when using: gcloud run deploy --source .
+# Keeps upload small and avoids sending secrets.
+
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+.cursor
+*.md
+!README.md
+
+__pycache__
+*.py[cod]
+*$py.class
+.venv
+venv
+env
+
+tests/
+docs/
+*.csv
+*.log
+.DS_Store
+
+# Optional: uncomment to use Dockerfile path instead of buildpacks
+# Dockerfile
+# .dockerignore

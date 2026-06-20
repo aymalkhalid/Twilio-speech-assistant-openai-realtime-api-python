@@ -1,0 +1,4112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Call Records dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --bg-subtle: linear-gradient(160deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+      --surface: #ffffff;
+      --surface-elevated: rgba(255, 255, 255, 0.85);
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #0ea5e9;
+      --accent-hover: #0284c7;
+      --accent-soft: rgba(14, 165, 233, 0.12);
+      --priority-high: #dc2626;
+      --priority-medium: #d97706;
+      --priority-low: #059669;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 20px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 10px 40px rgba(15, 23, 42, 0.1);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      background-image: var(--bg-subtle);
+      background-attachment: fixed;
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .dashboard-page {
+      max-width: 1920px;
+      margin: 0 auto;
+      padding: 1.5rem 1.75rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .toolbar button,
+    .toolbar select,
+    .toolbar input {
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s, transform 0.1s, border-color 0.2s;
+    }
+
+    .toolbar button {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+    }
+
+    .toolbar button:hover:not(:disabled) {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .toolbar button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .toolbar button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background: var(--muted);
+      border-color: var(--muted);
+      box-shadow: none;
+      transform: none;
+    }
+
+    .toolbar label {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-right: 0.25rem;
+      font-weight: 500;
+    }
+
+    .toolbar input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--surface-elevated);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      box-shadow: var(--shadow-md);
+    }
+
+    .filters label {
+      font-size: 0.875rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .filters input[type="date"],
+    .filters select {
+      font-family: inherit;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.875rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .filters input[type="date"]:focus,
+    .filters select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-soft);
+    }
+
+    .filter-tz-note {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-right: 0.5rem;
+    }
+
+    .filters .chk {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .filters button {
+      font-family: inherit;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.55rem 1.2rem;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    }
+
+    .filters button:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .status {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .status.call-count {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--surface);
+      padding: 0.35rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-left: 0.5rem;
+    }
+
+    .status.error {
+      color: var(--priority-high);
+    }
+
+    .dashboard-footer {
+      margin-top: 1.5rem;
+      padding: 0.75rem 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    .dashboard-footer .tz-label {
+      background: var(--surface-elevated);
+      color: var(--accent);
+      padding: 0.3rem 0.6rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .pagination span {
+      white-space: nowrap;
+    }
+
+    .pagination button {
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s, border-color 0.2s, transform 0.1s;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .pagination select {
+      font-family: inherit;
+      padding: 0.5rem 0.65rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 0.85rem 1.15rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: #fafbfc;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table-wrap th:last-child,
+    .table-wrap td:last-child {
+      position: sticky;
+      right: 0;
+      background: var(--surface);
+      box-shadow: -6px 0 12px rgba(0, 0, 0, 0.06);
+      z-index: 1;
+    }
+
+    .table-wrap th:last-child {
+      background: #fafbfc;
+    }
+
+    tbody tr:hover td:last-child {
+      background: #f8fafc;
+    }
+
+    tbody tr {
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover td {
+      background: #f8fafc;
+    }
+
+    .table-wrap tbody tr[data-index] {
+      cursor: pointer;
+    }
+
+    .priority {
+      font-weight: 600;
+    }
+
+    .priority.high {
+      color: var(--priority-high);
+    }
+
+    .priority.medium {
+      color: var(--priority-medium);
+    }
+
+    .priority.low {
+      color: var(--priority-low);
+    }
+
+    .cell-mono {
+      font-family: ui-monospace, monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .table-wrap th:first-child,
+    .table-wrap td.cell-mono {
+      white-space: nowrap;
+      min-width: 11rem;
+    }
+
+    .cell-summary {
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .empty {
+      padding: 2.5rem;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    a:hover {
+      text-decoration: underline;
+      color: var(--accent-hover);
+    }
+
+    .booking-calendar-link {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .booking-calendar-link:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+    }
+
+    .btn-view {
+      font-family: inherit;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.8rem;
+      background: var(--surface);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s, transform 0.1s;
+    }
+
+    .btn-view:hover {
+      background: var(--accent-soft);
+      color: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.4);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: auto;
+      box-shadow: var(--shadow-md);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: #f8fafc;
+      border-radius: 12px 12px 0 0;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0 0.25rem;
+      line-height: 1;
+      border-radius: 6px;
+    }
+
+    .modal-close:hover {
+      color: var(--text);
+      background: var(--border);
+    }
+
+    .modal-body {
+      padding: 1.5rem 1.75rem;
+      font-size: 0.875rem;
+    }
+
+    .modal-body dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: 1.5rem;
+      row-gap: 0.15rem;
+      align-items: baseline;
+    }
+
+    .modal-body dt {
+      color: var(--muted);
+      margin-top: 0.6rem;
+      margin-bottom: 0;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .modal-body dt:first-child {
+      margin-top: 0;
+    }
+
+    .modal-body dd {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--text);
+    }
+
+    .modal-body dd.modal-transcript,
+    .modal-body dd.modal-transcript-summary,
+    .modal-body dd.modal-transcript-issues {
+      grid-column: 1 / -1;
+      background: #f8fafc;
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-top: 0.5rem;
+      overflow-y: auto;
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .modal-body dd.modal-transcript {
+      max-height: 320px;
+    }
+
+    .modal-body dd.modal-transcript-summary,
+    .modal-body dd.modal-transcript-issues {
+      max-height: 160px;
+    }
+
+    .modal-body dd.modal-metadata-dd {
+      white-space: normal;
+    }
+
+    .metadata-toggle-btn {
+      font-family: inherit;
+      background: #f8fafc;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.45rem 0.8rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .metadata-toggle-btn:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .metadata-details {
+      margin-top: 0.65rem;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 0.9rem;
+      max-height: 220px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.78rem;
+      color: var(--text);
+    }
+
+    .modal-body dd:empty::after {
+      content: "—";
+      color: var(--muted);
+    }
+
+    .modal-body input[type="text"].modal-edit {
+      width: 100%;
+      padding: 0.5rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    .notes-section {
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .notes-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0.5rem 0;
+      min-height: 2rem;
+    }
+
+    .note-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      background: #f1f5f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+      max-width: 100%;
+    }
+
+    .note-chip .note-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .note-chip-remove {
+      flex-shrink: 0;
+      width: 1.2em;
+      height: 1.2em;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.9em;
+      line-height: 1;
+    }
+
+    .note-chip-remove:hover {
+      background: var(--priority-high);
+      color: #fff;
+    }
+
+    .notes-add {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.75rem;
+    }
+
+    .notes-add input[type="text"] {
+      flex: 1;
+      min-width: 140px;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.875rem;
+    }
+
+    .notes-add select {
+      padding: 0.5rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .notes-add #modal-add-note-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .notes-add #modal-add-note-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .modal-actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .modal-actions select {
+      padding: 0.5rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .modal-actions #modal-save {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.65rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(14, 165, 233, 0.35);
+    }
+
+    .modal-actions #modal-save:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.45);
+    }
+
+    .modal-actions #modal-delete {
+      background: transparent;
+      color: #dc2626;
+      border: 1px solid #dc2626;
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-right: auto;
+    }
+
+    .modal-actions #modal-delete:hover {
+      background: #fef2f2;
+    }
+
+    .modal-actions #modal-delete:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status-badge,
+    .priority-pill {
+      display: inline-block;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .status-badge.pending {
+      background: #fef9c3;
+      color: #a16207;
+    }
+
+    .status-badge.in_progress {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    .status-badge.booked {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .status-badge.cancelled {
+      background: #e5e7eb;
+      color: #4b5563;
+    }
+
+    .status-badge.completed {
+      background: #ccfbf1;
+      color: #0f766e;
+    }
+
+    .status-badge.finalized {
+      background: #d1fae5;
+      color: #047857;
+    }
+
+    .status-badge.spam {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .priority-pill.high {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .priority-pill.medium {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    .priority-pill.low {
+      background: #d1fae5;
+      color: #047857;
+    }
+
+    .priority.high {
+      color: var(--priority-high);
+    }
+
+    .priority.medium {
+      color: #c2410c;
+    }
+
+    .priority.low {
+      color: #047857;
+    }
+
+    .booking-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .booking-entry {
+      line-height: 1.4;
+    }
+
+    .call-sid-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .call-sid-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 0.78rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      word-break: break-all;
+    }
+
+    .custom-audio-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      padding: 0.5rem 0.75rem;
+      background: #f1f5f9;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 0.5rem;
+    }
+
+    .custom-audio-wrap .custom-audio-play {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .custom-audio-wrap .custom-audio-play:hover {
+      background: var(--accent-hover);
+    }
+
+    .custom-audio-wrap .custom-audio-time {
+      font-size: 0.8rem;
+      color: var(--text);
+      min-width: 5rem;
+    }
+
+    .custom-audio-wrap .custom-audio-seek {
+      flex: 1;
+      min-width: 80px;
+      height: 6px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .custom-audio-wrap .custom-audio-seek::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .custom-audio-wrap .custom-audio-seek::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .custom-audio-wrap .custom-audio-seek::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+    }
+
+    .custom-audio-wrap .custom-audio-seek::-moz-range-track {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+    }
+
+    .btn-generate-transcript {
+      margin-left: 0.5rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: var(--surface);
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .btn-generate-transcript:hover:not(:disabled) {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    tr.row-spam {
+      background: #fef2f2 !important;
+      border-left: 4px solid #dc2626;
+    }
+
+    tr.row-spam td {
+      background: transparent;
+    }
+
+    /* App bar / header – rich gradient bar, clear hierarchy, a11y, touch, flexes */
+    .dashboard-nav {
+      --header-min-h: 3.75rem;
+      --header-padding-y: 0.875rem;
+      --header-padding-x: 1.5rem;
+      --header-gap: 1rem;
+      --header-bg: linear-gradient(135deg, #0ea5e9 0%, #0284c7 40%, #0369a1 100%);
+      --header-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 50%);
+      --header-shadow: 0 4px 20px rgba(2, 132, 199, 0.35);
+      position: relative;
+      background: var(--header-bg);
+      box-shadow: var(--header-shadow);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .dashboard-nav::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--header-highlight);
+      pointer-events: none;
+    }
+
+    .dashboard-nav::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+      pointer-events: none;
+    }
+
+    @media (min-width: 600px) {
+      .dashboard-nav {
+        --header-padding-x: 1.75rem;
+        --header-gap: 1.25rem;
+      }
+    }
+
+    .dashboard-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--header-gap);
+      min-height: var(--header-min-h);
+      padding: var(--header-padding-y) var(--header-padding-x);
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .dashboard-header .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.2rem;
+      min-width: 0;
+    }
+
+    .dashboard-header .brand h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dashboard-header .brand h1 .header-icon {
+      opacity: 0.95;
+      flex-shrink: 0;
+    }
+
+    .dashboard-header .brand .company {
+      font-size: clamp(0.8125rem, 1.5vw, 0.9375rem);
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.88);
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+      padding-left: 0.15rem;
+    }
+
+    .dashboard-header .brand .company:empty {
+      display: none;
+    }
+
+    .dashboard-header .actions {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      flex-shrink: 0;
+    }
+
+    .dashboard-header .btn-settings {
+      font-family: inherit;
+      background: rgba(255, 255, 255, 0.98);
+      color: #0369a1;
+      border: none;
+      min-height: 2.75rem;
+      min-width: 2.75rem;
+      padding: 0.5rem 1.15rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    .dashboard-header .btn-settings:hover {
+      background: #fff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .dashboard-header .btn-settings:active {
+      transform: translateY(0);
+    }
+
+    .dashboard-header .btn-settings:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5), 0 0 0 5px #0369a1;
+    }
+
+    .dashboard-header .btn-settings .icon {
+      width: 1.1em;
+      height: 1.1em;
+      opacity: 0.9;
+    }
+
+    .dashboard-header .logout-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.75rem;
+      min-width: 2.75rem;
+      padding: 0.5rem 0.85rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #fff;
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.08);
+      transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      gap: 0.35rem;
+    }
+
+    .dashboard-header .logout-link:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .dashboard-header .logout-link:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+    }
+
+    .dashboard-header .logout-link .icon {
+      width: 1em;
+      height: 1em;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 480px) {
+      .dashboard-nav {
+        --header-min-h: auto;
+        --header-padding-y: 0.75rem;
+        --header-padding-x: 1rem;
+      }
+
+      .dashboard-header {
+        gap: 0.75rem;
+      }
+
+      .dashboard-header .brand h1 .header-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      .dashboard-header .brand h1 {
+        font-size: 1.2rem;
+      }
+
+      .dashboard-header .btn-settings {
+        min-height: 2.5rem;
+        min-width: 2.5rem;
+        padding: 0.5rem 0.9rem;
+      }
+
+      .dashboard-header .logout-link {
+        min-height: 2.5rem;
+        min-width: 2.5rem;
+      }
+    }
+
+    .settings-section {
+      margin-bottom: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: #fafbfc;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .settings-section h3 {
+      margin: 0 0 0.75rem 0;
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .settings-section .field {
+      margin-bottom: 0.75rem;
+    }
+
+    .settings-section .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .settings-section .field label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+      font-weight: 500;
+    }
+
+    .settings-section .field input[type="text"],
+    .settings-section .field input[type="number"],
+    .settings-section .field select {
+      width: 100%;
+      max-width: 100%;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.875rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .settings-section .field input[type="text"]:focus,
+    .settings-section .field input[type="number"]:focus,
+    .settings-section .field select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    }
+
+    .settings-section .field input[type="checkbox"] {
+      margin-right: 0.5rem;
+      width: 1rem;
+      height: 1rem;
+      accent-color: var(--accent);
+      cursor: pointer;
+      vertical-align: middle;
+    }
+
+    .settings-section .field label.chk {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .settings-modal .modal {
+      max-width: min(960px, 92vw);
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    }
+
+    .settings-modal .modal-header {
+      padding: 1.25rem 1.5rem;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border-bottom: 1px solid var(--border);
+      border-radius: 14px 14px 0 0;
+    }
+
+    .settings-modal .modal-header h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .settings-modal .modal-close {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 1.4rem;
+      line-height: 1;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .settings-modal .modal-close:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .settings-modal .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+      padding: 1.5rem 1.75rem;
+    }
+
+    .settings-modal #settings-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 2.5rem;
+      column-gap: 2.5rem;
+    }
+
+    .settings-modal #settings-form .settings-section:last-of-type {
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 640px) {
+      .settings-modal #settings-form {
+        grid-template-columns: 1fr;
+      }
+
+      .settings-modal #settings-form .settings-section:last-of-type {
+        grid-column: 1;
+      }
+
+      .settings-modal .modal {
+        max-width: 95vw;
+      }
+    }
+
+    .settings-modal .modal-footer {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.75rem;
+      flex-shrink: 0;
+      background: #fafbfc;
+      border-radius: 0 0 14px 14px;
+    }
+
+    .settings-modal .modal-footer .status {
+      margin-right: auto;
+      align-self: center;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .settings-modal .modal-footer .status.success {
+      color: var(--priority-low);
+      font-weight: 500;
+    }
+
+    .settings-modal .modal-footer .status.error {
+      color: var(--priority-high);
+      font-weight: 500;
+    }
+
+    .settings-modal .modal-footer .btn-cancel {
+      padding: 0.6rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .settings-modal .modal-footer .btn-cancel:hover {
+      background: var(--bg);
+      border-color: var(--muted);
+      color: var(--text);
+    }
+
+    .settings-modal .modal-footer .btn-save {
+      padding: 0.6rem 1.5rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.35);
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    }
+
+    .settings-modal .modal-footer .btn-save:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+    }
+
+    .settings-modal .modal-footer .btn-save:active {
+      transform: scale(0.98);
+    }
+
+    .vad-server-only {
+      display: block;
+    }
+
+    .vad-server-only.hidden {
+      display: none;
+    }
+
+    .vad-semantic-only {
+      display: block;
+    }
+
+    .vad-semantic-only.hidden {
+      display: none;
+    }
+
+    .vad-server-only .field-note,
+    .vad-semantic-only .field-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    tr.row-new {
+      animation: row-new 2s ease-out;
+    }
+
+    @keyframes row-new {
+      from {
+        background: var(--accent);
+        opacity: 0.85;
+      }
+
+      to {
+        background: transparent;
+        opacity: 1;
+      }
+    }
+
+    /* Outbound calls button */
+    .dashboard-header .btn-outbound {
+      font-family: inherit;
+      background: #059669;
+      color: #fff;
+      border: none;
+      min-height: 2.75rem;
+      min-width: 2.75rem;
+      padding: 0.5rem 1.15rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    .dashboard-header .btn-outbound:hover {
+      background: #047857;
+      box-shadow: 0 4px 16px rgba(5, 150, 105, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .dashboard-header .btn-outbound:active {
+      transform: translateY(0);
+    }
+
+    .dashboard-header .btn-outbound .icon {
+      width: 1.1em;
+      height: 1.1em;
+      opacity: 0.9;
+    }
+
+    /* Missed calls button (matches outbound button sizing; red accent + badge) */
+    .dashboard-header .btn-missed-calls {
+      font-family: inherit;
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      min-height: 2.75rem;
+      min-width: 2.75rem;
+      padding: 0.5rem 1.15rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      position: relative;
+    }
+
+    .dashboard-header .btn-missed-calls:hover {
+      background: #b91c1c;
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .dashboard-header .btn-missed-calls:active {
+      transform: translateY(0);
+    }
+
+    .dashboard-header .btn-missed-calls .icon {
+      width: 1.1em;
+      height: 1.1em;
+      opacity: 0.9;
+    }
+
+    .dashboard-header .btn-missed-calls .badge {
+      display: none;
+      background: #fff;
+      color: #dc2626;
+      font-size: 0.7rem;
+      font-weight: 700;
+      min-width: 1.15rem;
+      height: 1.15rem;
+      padding: 0 0.35rem;
+      border-radius: 999px;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .dashboard-header .btn-missed-calls .badge.visible {
+      display: inline-flex;
+    }
+
+    /* Missed calls modal — near-fullscreen, reuses outbound-modal layout */
+    .missed-modal .modal {
+      max-width: min(1200px, 96vw);
+      width: 96vw;
+      height: min(90vh, 820px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mc-table-wrap {
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .mc-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      min-width: 900px;
+    }
+
+    .mc-table th {
+      background: var(--surface-alt, #f8fafc);
+      padding: 0.55rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+    }
+
+    .mc-table td {
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .mc-table tr:hover td {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .mc-reason {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .mc-reason-no-answer, .mc-reason-busy {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .mc-reason-failed, .mc-reason-canceled {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .mc-reason-no_call_record_captured {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .mc-actions {
+      display: inline-flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .mc-actions button,
+    .mc-actions a.mc-btn {
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: inherit;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .mc-actions .mc-btn-ai {
+      background: #059669;
+      color: #fff;
+      border-color: #059669;
+    }
+
+    .mc-actions .mc-btn-ai:hover:not(:disabled) {
+      background: #047857;
+    }
+
+    .mc-actions .mc-btn-ai:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .mc-actions .mc-btn-tel {
+      background: #0ea5e9;
+      color: #fff;
+      border-color: #0ea5e9;
+    }
+
+    .mc-actions .mc-btn-tel:hover {
+      background: #0284c7;
+    }
+
+    .mc-actions .mc-btn-handled:hover:not(:disabled) {
+      background: #f3f4f6;
+    }
+
+    .mc-empty {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+    }
+
+    /* Outbound modal — near-fullscreen */
+    .outbound-modal .modal {
+      max-width: min(1400px, 96vw);
+      width: 96vw;
+      max-height: 96vh;
+      height: 96vh;
+      display: flex;
+      flex-direction: column;
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+    }
+
+    .outbound-modal .modal-header {
+      padding: 1.25rem 1.5rem;
+      background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+      border-bottom: 1px solid var(--border);
+      border-radius: 14px 14px 0 0;
+    }
+
+    .outbound-modal .modal-header h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .outbound-modal .modal-close {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .outbound-modal .modal-close:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .outbound-modal .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .outbound-modal .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.75rem;
+      flex-shrink: 0;
+      background: #fafbfc;
+      border-radius: 0 0 14px 14px;
+    }
+
+    .outbound-modal .modal-footer .status {
+      margin-right: auto;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .outbound-modal .modal-footer .status.success {
+      color: var(--priority-low);
+      font-weight: 500;
+    }
+
+    .outbound-modal .modal-footer .status.error {
+      color: var(--priority-high);
+      font-weight: 500;
+    }
+
+    /* Outbound: campaign list view */
+    .ob-campaign-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .ob-campaign-list li {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .ob-campaign-list li:hover {
+      background: var(--accent-soft);
+    }
+
+    .ob-campaign-list .ob-c-name {
+      font-weight: 600;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ob-campaign-list .ob-c-type {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .ob-badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .ob-badge.draft {
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    .ob-badge.running {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .ob-badge.paused {
+      background: #fef9c3;
+      color: #854d0e;
+    }
+
+    .ob-badge.completed {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    /* Outbound: campaign editor two-panel layout */
+    .ob-editor {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 1.5rem;
+      min-height: 0;
+      flex: 1;
+    }
+
+    @media (max-width: 700px) {
+      .ob-editor {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ob-editor .ob-config {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .ob-editor .ob-config label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .ob-editor .ob-config input,
+    .ob-editor .ob-config select,
+    .ob-editor .ob-config textarea {
+      font-family: inherit;
+      width: 100%;
+      padding: 0.5rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .ob-editor .ob-config textarea {
+      min-height: 160px;
+      resize: vertical;
+      flex: 1;
+    }
+
+    /* Outbound: contact spreadsheet */
+    .ob-contacts-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-height: 0;
+      flex: 1;
+    }
+
+    .ob-contacts-panel .ob-contacts-toolbar {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .ob-contacts-panel .ob-contacts-toolbar button,
+    .ob-contacts-panel .ob-contacts-toolbar label {
+      font-family: inherit;
+      font-size: 0.8rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+
+    .ob-contacts-panel .ob-contacts-toolbar button:hover {
+      background: var(--accent-soft);
+    }
+
+    .ob-contacts-panel .ob-contacts-toolbar .ob-file-label {
+      background: #059669;
+      color: #fff;
+      border-color: #059669;
+    }
+
+    .ob-contacts-panel .ob-contacts-toolbar .ob-file-label:hover {
+      background: #047857;
+    }
+
+    .ob-contacts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .ob-contacts-table th {
+      text-align: left;
+      padding: 0.4rem 0.5rem;
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+      font-size: 0.75rem;
+    }
+
+    .ob-contacts-table td {
+      padding: 0.3rem 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ob-contacts-table input {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 0.3rem 0.4rem;
+      font-size: 0.8rem;
+      font-family: inherit;
+      border-radius: 4px;
+    }
+
+    .ob-contacts-table input:focus {
+      border-color: var(--accent);
+      outline: none;
+      background: #fff;
+    }
+
+    .ob-contacts-table .ob-del-btn {
+      background: none;
+      border: none;
+      color: var(--priority-high);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.2rem;
+      opacity: 0.5;
+    }
+
+    .ob-contacts-table .ob-del-btn:hover {
+      opacity: 1;
+    }
+
+    .ob-contacts-table .ob-call-btn {
+      background: #059669;
+      color: #fff;
+      border: none;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .ob-contacts-table .ob-call-btn:hover {
+      background: #047857;
+    }
+
+    .ob-contacts-table .ob-call-btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+    .ob-contacts-table .ob-reset-btn {
+      background: #b45309;
+      color: #fff;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 0.25rem;
+    }
+    .ob-contacts-table .ob-reset-btn:hover {
+      background: #92400e;
+    }
+    .ob-contacts-table tr.ob-row-calling {
+      background: #fef3c7;
+      box-shadow: inset 0 0 0 2px #f59e0b;
+    }
+    .ob-contacts-table tr.ob-row-calling td {
+      border-color: #fcd34d;
+    }
+    .ob-contacts-table .ob-stop-btn {
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 0.25rem;
+    }
+    .ob-contacts-table .ob-stop-btn:hover {
+      background: #b91c1c;
+    }
+
+    .ob-contacts-wrap {
+      max-height: none;
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    /* Outbound: progress bar */
+    .ob-progress {
+      margin-top: 0.5rem;
+    }
+
+    .ob-progress-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+
+    .ob-progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: #059669;
+      transition: width 0.5s;
+    }
+
+    .ob-progress-text {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dashboard-page">
+    <header class="dashboard-nav" role="banner" aria-label="Dashboard">
+      <div class="dashboard-header">
+        <div class="brand">
+          <h1>
+            <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Call Records
+          </h1>
+          <span class="company" id="dashboard-company">__DASHBOARD_COMPANY_PLACEHOLDER__</span>
+        </div>
+        <div class="actions">
+          <button type="button" id="missed-calls-btn" class="btn-missed-calls" aria-label="Missed calls">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.21 19" />
+              <path d="M22 2 2 22" />
+              <path d="M5 2A19.79 19.79 0 0 1 11.21 5" />
+            </svg>
+            Missed calls
+            <span class="badge" id="missed-calls-badge">0</span>
+          </button>
+          <button type="button" id="outbound-btn" class="btn-outbound" aria-label="Outbound calls">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="14" y1="10" x2="21" y2="3" />
+            </svg>
+            Outbound
+          </button>
+          <button type="button" id="settings-btn" class="btn-settings" aria-label="Open app settings">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+            Settings
+          </button>
+          <a href="/logout" class="logout-link" aria-label="Log out">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Log out
+          </a>
+        </div>
+      </div>
+    </header>
+    <div class="filters">
+      <label>Priority</label>
+      <select id="filter-priority">
+        <option value="">All</option>
+        <option value="emergency">Emergency</option>
+        <option value="same_day">Same day</option>
+        <option value="routine">Routine</option>
+      </select>
+      <label>Date range</label>
+      <select id="filter-date-preset">
+        <option value="">Custom range</option>
+        <option value="today">Today</option>
+        <option value="yesterday">Yesterday</option>
+        <option value="last3">Last 3 days</option>
+        <option value="last7">Last week</option>
+      </select>
+      <span class="filter-tz-note" id="filter-tz-note">From/To in <span id="filter-tz-label">—</span></span>
+      <label>From</label>
+      <input type="date" id="filter-date-from" />
+      <input type="time" id="filter-time-from" title="Time in business timezone (optional; empty = all day)"
+        aria-label="From time in business timezone (optional)" />
+      <label>To</label>
+      <input type="date" id="filter-date-to" />
+      <input type="time" id="filter-time-to" title="Time in business timezone (optional; empty = all day)"
+        aria-label="To time in business timezone (optional)" />
+      <label class="chk"><input type="checkbox" id="filter-has-booking" /> Has booking</label>
+      <label class="chk"><input type="checkbox" id="filter-has-address" /> Has address</label>
+      <label class="chk"><input type="checkbox" id="filter-is-spam" /> Is spam</label>
+      <label>Status</label>
+      <select id="filter-status">
+        <option value="">All</option>
+        <option value="pending">Pending</option>
+        <option value="in_progress">In progress</option>
+        <option value="booked">Booked</option>
+        <option value="cancelled">Cancelled</option>
+        <option value="completed">Completed</option>
+        <option value="finalized">Finalized</option>
+        <option value="spam">Spam</option>
+      </select>
+      <button type="button" id="apply-filters">Apply</button>
+    </div>
+    <div class="toolbar">
+      <button type="button" id="refresh">Refresh</button>
+      <label for="filter-address">Address search</label>
+      <input type="text" id="filter-address" placeholder="Search address, summary, notes…" style="min-width: 160px;" />
+      <span class="status" id="status">Loading…</span>
+    </div>
+    <div class="pagination" id="pagination" style="display: none;">
+      <span id="pagination-text"></span>
+      <button type="button" id="prev">Prev</button>
+      <button type="button" id="next">Next</button>
+      <label>Page size</label>
+      <select id="page-size">
+        <option value="10" selected>10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Priority</th>
+            <th>Issue</th>
+            <th>Call summary</th>
+            <th>Address</th>
+            <th>Booking</th>
+            <th>Notes</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr>
+            <td colspan="11" class="empty">Loading…</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="modal-title">Call record details</h2>
+          <button type="button" class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-body"></div>
+      </div>
+    </div>
+
+    <div class="modal-overlay settings-modal" id="settings-modal" role="dialog" aria-modal="true"
+      aria-labelledby="settings-modal-title">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="settings-modal-title">App settings</h2>
+          <button type="button" class="modal-close" id="settings-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body" id="settings-modal-body">
+          <p class="status" id="settings-load-status">Loading…</p>
+          <form id="settings-form" style="display: none;">
+            <div class="settings-section">
+              <h3>Transcription</h3>
+              <div class="field"><label for="setting-TRANSCRIPTION_MODEL">Model</label><select
+                  id="setting-TRANSCRIPTION_MODEL" name="TRANSCRIPTION_MODEL">
+                  <option value="tiny">tiny</option>
+                  <option value="small">small</option>
+                  <option value="base">base</option>
+                  <option value="medium">medium</option>
+                  <option value="large-v3">large-v3</option>
+                  <option value="distil-large-v3">distil-large-v3</option>
+                </select></div>
+              <div class="field"><label class="chk"><input type="checkbox" id="setting-TRANSCRIPT_ENHANCEMENT_ENABLED"
+                    name="TRANSCRIPT_ENHANCEMENT_ENABLED" /> Transcript enhancement (manual button)</label></div>
+              <div class="field"><label for="setting-OPENAI_REALTIME_MODEL">Realtime model</label><select
+                  id="setting-OPENAI_REALTIME_MODEL" name="OPENAI_REALTIME_MODEL">
+                  <option value="gpt-realtime-2">gpt-realtime-2</option>
+                  <option value="gpt-realtime">gpt-realtime</option>
+                  <option value="gpt-realtime-1.5">gpt-realtime-1.5</option>
+                  <option value="gpt-realtime-mini">gpt-realtime-mini</option>
+                  <option value="gpt-4o-realtime-preview">gpt-4o-realtime-preview</option>
+                  <option value="gpt-4o-mini-realtime-preview">gpt-4o-mini-realtime-preview</option>
+                </select></div>
+              <div class="field"><label for="setting-REALTIME_REASONING_EFFORT">Realtime reasoning effort</label><select
+                  id="setting-REALTIME_REASONING_EFFORT" name="REALTIME_REASONING_EFFORT">
+                  <option value="minimal">minimal</option>
+                  <option value="low">low</option>
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                  <option value="xhigh">xhigh</option>
+                </select></div>
+              <div class="field"><label for="setting-TRANSCRIPT_ENHANCEMENT_MODEL">Transcript enhancement
+                  model</label><select id="setting-TRANSCRIPT_ENHANCEMENT_MODEL" name="TRANSCRIPT_ENHANCEMENT_MODEL">
+                  <option value="gpt-5.1">gpt-5.1</option>
+                  <option value="gpt-5">gpt-5</option>
+                  <option value="gpt-5-mini">gpt-5-mini</option>
+                  <option value="gpt-5-nano">gpt-5-nano</option>
+                  <option value="gpt-4.1">gpt-4.1</option>
+                  <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+                  <option value="gpt-4.1-nano">gpt-4.1-nano</option>
+                  <option value="gpt-4o">gpt-4o</option>
+                  <option value="gpt-4o-mini">gpt-4o-mini</option>
+                </select></div>
+            </div>
+            <div class="settings-section">
+              <h3>Call recording</h3>
+              <div class="field"><label class="chk"><input type="checkbox" id="setting-CALL_RECORDING_ENABLED"
+                    name="CALL_RECORDING_ENABLED" /> Call recording enabled</label></div>
+            </div>
+            <div class="settings-section">
+              <h3>Voice &amp; prompts</h3>
+              <div class="field"><label for="setting-VOICE">Voice</label><select id="setting-VOICE" name="VOICE">
+                  <option value="alloy">alloy</option>
+                  <option value="ash">ash</option>
+                  <option value="ballad">ballad</option>
+                  <option value="coral">coral</option>
+                  <option value="echo">echo</option>
+                  <option value="sage">sage</option>
+                  <option value="shimmer">shimmer</option>
+                  <option value="verse">verse</option>
+                  <option value="marin">marin</option>
+                  <option value="cedar">cedar</option>
+                </select></div>
+              <div class="field"><label for="setting-ASSISTANT_LANGUAGE">Default language</label><input type="text"
+                  id="setting-ASSISTANT_LANGUAGE" name="ASSISTANT_LANGUAGE" placeholder="English" /></div>
+              <div class="field"><label for="setting-LANGUAGE_SWITCH_POLICY">Language switching</label><select
+                  id="setting-LANGUAGE_SWITCH_POLICY" name="LANGUAGE_SWITCH_POLICY">
+                  <option value="explicit_or_substantive">explicit or substantive</option>
+                  <option value="default_only">default only</option>
+                </select></div>
+              <div class="field"><label for="setting-ASSISTANT_ACCENT">Accent</label><input type="text"
+                  id="setting-ASSISTANT_ACCENT" name="ASSISTANT_ACCENT" placeholder="neutral American" /></div>
+              <div class="field"><label for="setting-ASSISTANT_ACCENT_STRENGTH">Accent strength</label><select
+                  id="setting-ASSISTANT_ACCENT_STRENGTH" name="ASSISTANT_ACCENT_STRENGTH">
+                  <option value="none">none</option>
+                  <option value="light">light</option>
+                  <option value="moderate">moderate</option>
+                </select></div>
+              <div class="field"><label for="setting-TEMPERATURE">Temperature (0–1)</label><input type="number"
+                  id="setting-TEMPERATURE" name="TEMPERATURE" min="0" max="1" step="0.1" /></div>
+              <div class="field"><label for="setting-COMPANY_NAME">Company name</label><input type="text"
+                  id="setting-COMPANY_NAME" name="COMPANY_NAME" placeholder="e.g. Acme Voice Agent Demo" /></div>
+              <div class="field"><label for="setting-AGENT_NAME">Agent name</label><input type="text"
+                  id="setting-AGENT_NAME" name="AGENT_NAME" placeholder="e.g. Alex" /></div>
+            </div>
+            <div class="settings-section">
+              <h3>Human transfer</h3>
+              <div class="field"><label class="chk"><input type="checkbox" id="setting-HUMAN_TRANSFER_ENABLED"
+                    name="HUMAN_TRANSFER_ENABLED" /> Transfer to human enabled</label></div>
+              <div class="field"><label for="setting-HUMAN_TRANSFER_DIAL_NUMBER">Dial number</label><input type="text"
+                  id="setting-HUMAN_TRANSFER_DIAL_NUMBER" name="HUMAN_TRANSFER_DIAL_NUMBER"
+                  placeholder="+15551234567" /></div>
+            </div>
+            <div class="settings-section">
+              <h3>Booking</h3>
+              <div class="field"><label for="setting-GOOGLE_CALENDAR_ID">Google Calendar ID</label><input type="text"
+                  id="setting-GOOGLE_CALENDAR_ID" name="GOOGLE_CALENDAR_ID"
+                  placeholder="e.g. @group.calendar.google.com or primary" /></div>
+              <div class="field"><label for="setting-BOOKING_SLOT_DURATION_MINUTES">Slot duration
+                  (minutes)</label><input type="number" id="setting-BOOKING_SLOT_DURATION_MINUTES"
+                  name="BOOKING_SLOT_DURATION_MINUTES" min="1" /></div>
+              <div class="field"><label for="setting-BUSINESS_APPOINTMENT_OPENING_TIME">Opening time (24h)</label><input
+                  type="text" id="setting-BUSINESS_APPOINTMENT_OPENING_TIME" name="BUSINESS_APPOINTMENT_OPENING_TIME"
+                  placeholder="08:00" /></div>
+              <div class="field"><label for="setting-BUSINESS_APPOINTMENT_CLOSING_TIME">Closing time (24h)</label><input
+                  type="text" id="setting-BUSINESS_APPOINTMENT_CLOSING_TIME" name="BUSINESS_APPOINTMENT_CLOSING_TIME"
+                  placeholder="18:00" /></div>
+              <div class="field"><label for="setting-AVAILABILITY_MAX_SLOTS_PER_BUCKET_PER_DAY">Max slots per
+                  bucket</label><input type="number" id="setting-AVAILABILITY_MAX_SLOTS_PER_BUCKET_PER_DAY"
+                  name="AVAILABILITY_MAX_SLOTS_PER_BUCKET_PER_DAY" min="0" placeholder="0 = all" /></div>
+              <div class="field"><label for="setting-BOOKING_DAYS_ENABLED">Booking days enabled</label><input
+                  type="text" id="setting-BOOKING_DAYS_ENABLED" name="BOOKING_DAYS_ENABLED"
+                  placeholder="mon,tue,wed,thu,fri" />
+                <div class="field-note">Comma-separated: mon,tue,wed,thu,fri,sat,sun. Empty = all days.</div>
+              </div>
+            </div>
+            <div class="settings-section">
+              <h3>Voice activity (VAD)</h3>
+              <div class="field"><label for="setting-VAD_MODE">Mode</label><select id="setting-VAD_MODE"
+                  name="VAD_MODE">
+                  <option value="server_vad">server_vad</option>
+                  <option value="semantic_vad">semantic_vad</option>
+                </select></div>
+              <div id="vad-semantic-only-fields" class="vad-semantic-only hidden">
+                <div class="field-note">Eagerness applies only to semantic_vad.</div>
+                <div class="field"><label for="setting-VAD_EAGERNESS">Eagerness</label><select
+                    id="setting-VAD_EAGERNESS" name="VAD_EAGERNESS">
+                    <option value="auto">auto</option>
+                    <option value="low">low</option>
+                    <option value="medium">medium</option>
+                    <option value="high">high</option>
+                  </select></div>
+              </div>
+              <div id="vad-server-only-fields" class="vad-server-only">
+                <div class="field-note">Threshold and silence duration apply only to server_vad.</div>
+                <div class="field"><label for="setting-VAD_THRESHOLD">Threshold (0–1)</label><input type="number"
+                    id="setting-VAD_THRESHOLD" name="VAD_THRESHOLD" min="0" max="1" step="0.01" /></div>
+                <div class="field"><label for="setting-VAD_SILENCE_DURATION_MS">Silence duration (ms)</label><input
+                    type="number" id="setting-VAD_SILENCE_DURATION_MS" name="VAD_SILENCE_DURATION_MS" min="0" /></div>
+              </div>
+              <div class="field"><label for="setting-VAD_PREFIX_PADDING_MS">Prefix padding (ms)</label><input
+                  type="number" id="setting-VAD_PREFIX_PADDING_MS" name="VAD_PREFIX_PADDING_MS" min="0" /></div>
+              <div class="field"><label for="setting-VAD_DEBOUNCE_AFTER_OUTGOING_MS">Debounce after outgoing
+                  (ms)</label><input type="number" id="setting-VAD_DEBOUNCE_AFTER_OUTGOING_MS"
+                  name="VAD_DEBOUNCE_AFTER_OUTGOING_MS" min="0" /></div>
+              <div class="field"><label for="setting-VAD_INTERRUPTION_CONFIRM_MS">Interruption confirm
+                  (ms)</label><input type="number" id="setting-VAD_INTERRUPTION_CONFIRM_MS"
+                  name="VAD_INTERRUPTION_CONFIRM_MS" min="0" /></div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer" id="settings-modal-footer" style="display: none;">
+          <span class="status" id="settings-save-status"></span>
+          <button type="button" id="settings-cancel-btn" class="btn-cancel">Cancel</button>
+          <button type="button" id="settings-save-btn" class="btn-save">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outbound campaign modal -->
+    <div class="modal-overlay outbound-modal" id="outbound-modal" role="dialog" aria-modal="true"
+      aria-labelledby="outbound-modal-title">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="outbound-modal-title">Outbound Campaigns</h2>
+          <button type="button" class="modal-close" id="outbound-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body" id="outbound-modal-body">
+          <!-- Campaign list view (shown first) -->
+          <div id="ob-list-view">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+              <span id="ob-list-status" class="status">Loading…</span>
+              <button type="button" id="ob-new-campaign-btn"
+                style="background:#059669;color:#fff;border:none;padding:0.45rem 1rem;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;">+
+                New Campaign</button>
+            </div>
+            <ul class="ob-campaign-list" id="ob-campaign-list"></ul>
+          </div>
+          <!-- Campaign editor view (hidden until create/click) -->
+          <div id="ob-editor-view" style="display:none;flex:1;flex-direction:column;">
+            <div style="margin-bottom:0.75rem;">
+              <button type="button" id="ob-back-to-list"
+                style="background:none;border:none;color:var(--accent);font-weight:600;cursor:pointer;font-size:0.85rem;">&larr;
+                Back to campaigns</button>
+            </div>
+            <div class="ob-editor">
+              <div class="ob-config">
+                <div><label for="ob-name">Campaign name</label><input type="text" id="ob-name"
+                    placeholder="e.g. March Promo" /></div>
+                <div><label for="ob-type">Type</label><select id="ob-type">
+                    <option value="general">General</option>
+                  </select></div>
+                <div style="display:flex;flex-direction:column;flex:1;min-height:0;"><label for="ob-message">Message /
+                    script</label><textarea id="ob-message" placeholder="AI instructions for this campaign…"></textarea>
+                </div>
+                <div><label for="ob-concurrency">Concurrency</label><input type="number" id="ob-concurrency" value="1"
+                    min="1" max="10" /></div>
+              </div>
+              <div class="ob-contacts-panel">
+                <div class="ob-contacts-toolbar">
+                  <label class="ob-file-label" tabindex="0">Upload Excel/CSV <input type="file" id="ob-file-upload"
+                      accept=".xlsx,.xls,.csv" style="display:none;" /></label>
+                  <button type="button" id="ob-add-row">+ Add row</button>
+                  <span id="ob-contacts-count" style="font-size:0.8rem;color:var(--muted);margin-left:auto;">0
+                    contacts</span>
+                </div>
+                <div class="ob-contacts-wrap">
+                  <table class="ob-contacts-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Extra</th>
+                        <th></th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="ob-contacts-tbody"></tbody>
+                  </table>
+                </div>
+                <div class="ob-progress" id="ob-progress" style="display:none;">
+                  <div class="ob-progress-bar">
+                    <div class="ob-progress-fill" id="ob-progress-fill" style="width:0%"></div>
+                  </div>
+                  <div class="ob-progress-text" id="ob-progress-text"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" id="outbound-modal-footer">
+          <span class="status" id="ob-footer-status"></span>
+          <button type="button" id="ob-cancel-btn"
+            style="padding:0.5rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-weight:500;">Cancel</button>
+          <button type="button" id="ob-save-btn"
+            style="padding:0.5rem 1.25rem;border-radius:8px;border:none;background:#0ea5e9;color:#fff;cursor:pointer;font-weight:600;display:none;">Save
+            Draft</button>
+          <button type="button" id="ob-start-btn"
+            style="padding:0.5rem 1.25rem;border-radius:8px;border:none;background:#059669;color:#fff;cursor:pointer;font-weight:600;display:none;">Start
+            Campaign</button>
+          <button type="button" id="ob-pause-btn"
+            style="padding:0.5rem 1.25rem;border-radius:8px;border:none;background:#d97706;color:#fff;cursor:pointer;font-weight:600;display:none;">Pause</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Missed calls modal -->
+    <div class="modal-overlay outbound-modal missed-modal" id="missed-calls-modal" role="dialog" aria-modal="true"
+      aria-labelledby="missed-calls-modal-title">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="missed-calls-modal-title">Missed Calls</h2>
+          <button type="button" class="modal-close" id="missed-calls-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;gap:0.75rem;flex-wrap:wrap;">
+            <span id="mc-list-status" class="status">Loading…</span>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <label for="mc-hours" style="font-size:0.8rem;color:var(--muted);">Last</label>
+              <select id="mc-hours" style="padding:0.35rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--surface);">
+                <option value="24">24 hours</option>
+                <option value="72" selected>3 days</option>
+                <option value="168">7 days</option>
+                <option value="336">14 days</option>
+                <option value="720">30 days</option>
+              </select>
+              <button type="button" id="mc-refresh-btn"
+                style="padding:0.4rem 0.9rem;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-weight:500;">Refresh</button>
+            </div>
+          </div>
+          <div class="mc-table-wrap">
+            <table class="mc-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>From</th>
+                  <th>Duration</th>
+                  <th>Reason</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="mc-tbody">
+                <tr><td colspan="5" class="mc-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <span class="status" id="mc-footer-status"></span>
+          <button type="button" id="mc-close-btn"
+            style="padding:0.5rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-weight:500;">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="dashboard-footer" aria-label="Business timezone for filter and display">
+      Filter and times in <span class="tz-label" id="footer-timezone">—</span>
+    </footer>
+  </div><!-- .dashboard-page -->
+
+  <script>
+    window.DASHBOARD_KEY = "__DASHBOARD_KEY_PLACEHOLDER__";
+    window.DASHBOARD_TIMEZONE = "__DASHBOARD_TIMEZONE_PLACEHOLDER__";
+    (function () {
+      var tz = window.DASHBOARD_TIMEZONE || "America/Los_Angeles";
+      var footerEl = document.getElementById("footer-timezone");
+      if (footerEl) footerEl.textContent = tz;
+      var filterTzEl = document.getElementById("filter-tz-label");
+      if (filterTzEl) filterTzEl.textContent = tz;
+    })();
+
+    var PREDEFINED_NOTES_CATEGORIES = [
+      { label: "Contact & follow-up", notes: ["calling & waiting on customer", "left voicemail", "customer not available / no answer", "rescheduled by customer", "callback requested", "follow-up required"] },
+      { label: "On the job", notes: ["team on the way", "work in progress", "completed", "site visit completed", "second visit required"] },
+      { label: "Quotes", notes: ["customer wants quotation", "quote sent", "customer confirmed", "customer declined quote"] },
+      { label: "Parts & scheduling", notes: ["parts on order", "awaiting parts", "job postponed"] },
+      { label: "Access", notes: ["access issue (lockbox, gate)", "no access / customer not home"] },
+      { label: "Other", notes: ["emergency / same-day request", "warranty job", "job cancelled"] }
+    ];
+    function buildNoteOptionsHtml() {
+      function esc(s) { return (s || "").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+      return PREDEFINED_NOTES_CATEGORIES.map(function (g) {
+        var opts = g.notes.map(function (n) { return "<option value=\"" + esc(n) + "\">" + esc(n) + "</option>"; }).join("");
+        return "<optgroup label=\"" + esc(g.label) + "\">" + opts + "</optgroup>";
+      }).join("");
+    }
+    var STATUS_OPTIONS = [
+      { value: "pending", label: "Pending" },
+      { value: "in_progress", label: "In progress" },
+      { value: "booked", label: "Booked" },
+      { value: "cancelled", label: "Cancelled" },
+      { value: "completed", label: "Completed" },
+      { value: "finalized", label: "Finalized" },
+      { value: "spam", label: "Spam" }
+    ];
+
+    let state = {
+      page: 1,
+      pageSize: 10,
+      total: 0,
+      leads: [],
+      priority: "",
+      date_from: "",
+      date_to: "",
+      has_booking: false,
+      has_address: false,
+      is_spam: false,
+      status: "",
+      address: "",
+    };
+    var POLL_INTERVAL_MS = 3000;
+    var pollTimerId = null;
+    var loadInProgress = false;
+    var leadsEs = null;
+    var leadsEsReconnectTimer = null;
+    var leadsEsBackoffMs = 2000;
+
+    function formatTime(val) {
+      if (!val) return "—";
+      try {
+        var d = new Date(val);
+        if (isNaN(d.getTime())) return val;
+        var tz = window.DASHBOARD_TIMEZONE || "America/Los_Angeles";
+        try {
+          var dateParts = new Intl.DateTimeFormat("en", { timeZone: tz, day: "numeric", month: "long", year: "numeric" }).formatToParts(d);
+          var day = "", month = "", year = "";
+          dateParts.forEach(function (p) {
+            if (p.type === "day") day = p.value;
+            if (p.type === "month") month = p.value;
+            if (p.type === "year") year = p.value;
+          });
+          var dateStr = day + " " + month + ", " + year;
+          var timeStr = new Intl.DateTimeFormat("en", { timeZone: tz, hour: "numeric", minute: "2-digit", hour12: true }).format(d);
+          return dateStr + ", " + timeStr;
+        } catch (_) { return d.toLocaleString(); }
+      } catch (_) { return val; }
+    }
+
+    function getDateInTz(d, tz) {
+      try {
+        return new Intl.DateTimeFormat("en-CA", { timeZone: tz || "UTC", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+      } catch (_) { return d.toISOString().slice(0, 10); }
+    }
+
+    function getDateRangeFromForm() {
+      var df = document.getElementById("filter-date-from").value.trim();
+      var tf = (document.getElementById("filter-time-from") && document.getElementById("filter-time-from").value) ? document.getElementById("filter-time-from").value.trim() : "";
+      var dt = document.getElementById("filter-date-to").value.trim();
+      var tt = (document.getElementById("filter-time-to") && document.getElementById("filter-time-to").value) ? document.getElementById("filter-time-to").value.trim() : "";
+      return {
+        date_from: df ? (tf ? df + "T" + tf : df) : "",
+        date_to: dt ? (tt ? dt + "T" + tt : dt) : ""
+      };
+    }
+    function applyDatePreset(preset) {
+      var tz = window.DASHBOARD_TIMEZONE || "America/Los_Angeles";
+      var now = new Date();
+      var fromEl = document.getElementById("filter-date-from");
+      var toEl = document.getElementById("filter-date-to");
+      var timeFromEl = document.getElementById("filter-time-from");
+      var timeToEl = document.getElementById("filter-time-to");
+      if (!fromEl || !toEl) return;
+      if (timeFromEl) timeFromEl.value = "";
+      if (timeToEl) timeToEl.value = "";
+      if (!preset) {
+        fromEl.value = "";
+        toEl.value = "";
+        return;
+      }
+      var fromDate, toDate;
+      if (preset === "today") {
+        fromDate = toDate = now;
+      } else if (preset === "yesterday") {
+        fromDate = toDate = new Date(now.getTime() - 86400000);
+      } else if (preset === "last3") {
+        fromDate = new Date(now.getTime() - 2 * 86400000);
+        toDate = now;
+      } else if (preset === "last7") {
+        fromDate = new Date(now.getTime() - 6 * 86400000);
+        toDate = now;
+      } else {
+        return;
+      }
+      fromEl.value = getDateInTz(fromDate, tz);
+      toEl.value = getDateInTz(toDate, tz);
+    }
+
+    function priorityClass(p) {
+      if (!p) return "";
+      const s = (p + "").toLowerCase();
+      if (s.includes("high") || s.includes("emergency")) return "high";
+      if (s.includes("medium") || s.includes("normal")) return "medium";
+      return "low";
+    }
+
+    function buildCallRecordsUrl() {
+      const params = new URLSearchParams();
+      params.set("limit", String(state.pageSize));
+      params.set("offset", String((state.page - 1) * state.pageSize));
+      if (state.priority) params.set("priority", state.priority);
+      if (state.date_from) params.set("date_from", state.date_from);
+      if (state.date_to) params.set("date_to", state.date_to);
+      if (state.has_booking) params.set("has_booking", "true");
+      if (state.has_address) params.set("has_address", "true");
+      if (state.is_spam) params.set("is_spam", "true");
+      if (state.status) params.set("status", state.status);
+      if (state.address) params.set("address", state.address);
+      return "/calls?" + params.toString();
+    }
+
+    function statusBadgeClass(s) {
+      if (!s) return "pending";
+      var v = (s + "").toLowerCase();
+      if (["in_progress", "booked", "cancelled", "completed", "finalized", "spam"].indexOf(v) >= 0) return v;
+      return "pending";
+    }
+
+    function notesSummary(notes) {
+      if (!notes || !Array.isArray(notes) || notes.length === 0) return "—";
+      if (notes.length === 1) return (notes[0] || "").replace(/</g, "&lt;").slice(0, 40) + (notes[0].length > 40 ? "…" : "");
+      return notes.length + " notes";
+    }
+
+    function metadataObject(raw) {
+      if (!raw) return {};
+      if (typeof raw === "string") {
+        try {
+          var parsed = JSON.parse(raw);
+          return parsed && typeof parsed === "object" ? parsed : {};
+        } catch (_) {
+          return {};
+        }
+      }
+      return typeof raw === "object" ? raw : {};
+    }
+
+    function bookingDisplay(slot) {
+      if (!slot) return "—";
+      return slot.display || slot.date || slot.date_time || slot.slot_start_iso || "—";
+    }
+
+    function sortAppointments(list) {
+      return (list || []).slice().sort(function (a, b) {
+        var aState = (((a || {}).state) || "booked").toLowerCase();
+        var bState = (((b || {}).state) || "booked").toLowerCase();
+        var aRank = aState === "booked" ? 0 : 1;
+        var bRank = bState === "booked" ? 0 : 1;
+        if (aRank !== bRank) return aRank - bRank;
+        var aSlot = (a && typeof a.confirmed_slot === "object" && a.confirmed_slot) ? a.confirmed_slot : {};
+        var bSlot = (b && typeof b.confirmed_slot === "object" && b.confirmed_slot) ? b.confirmed_slot : {};
+        var aKey = aSlot.start || aSlot.date_time || aSlot.slot_start_iso || a.updated_at || a.event_id || "";
+        var bKey = bSlot.start || bSlot.date_time || bSlot.slot_start_iso || b.updated_at || b.event_id || "";
+        return String(aKey).localeCompare(String(bKey));
+      });
+    }
+
+    function getLeadAppointments(lead) {
+      var metadata = metadataObject(lead && lead.metadata);
+      var appointments = Array.isArray(metadata.appointments) ? metadata.appointments.filter(function (item) {
+        return item && typeof item === "object";
+      }) : [];
+      if (appointments.length) return sortAppointments(appointments);
+      if ((lead && lead.confirmed_slot) || (lead && lead.calendar_event_link)) {
+        return [{
+          state: ((lead.lead_status || "").toLowerCase() === "cancelled") ? "cancelled" : "booked",
+          confirmed_slot: lead.confirmed_slot || null,
+          calendar_event_link: lead.calendar_event_link || null,
+          summary: lead.issue_summary || "",
+          service_address: lead.service_address || ""
+        }];
+      }
+      return [];
+    }
+
+    function activeLeadAppointments(lead) {
+      return getLeadAppointments(lead).filter(function (item) {
+        return (((item.state || "booked") + "").toLowerCase() === "booked") && item.confirmed_slot;
+      });
+    }
+
+    function bookingCellHtml(lead) {
+      var appointments = activeLeadAppointments(lead);
+      if (!appointments.length) return "—";
+      if (appointments.length === 1) {
+        var app = appointments[0];
+        var slotStr = bookingDisplay(app.confirmed_slot);
+        var calLink = app.calendar_event_link
+          ? "<a href=\"" + String(app.calendar_event_link).replace(/\"/g, "&quot;") + "\" target=\"_blank\" rel=\"noopener\" class=\"booking-calendar-link\">Calendar</a>"
+          : "";
+        return slotStr + (calLink ? " " + calLink : "");
+      }
+      var title = appointments.map(function (app) {
+        var parts = [bookingDisplay(app.confirmed_slot)];
+        if (app.summary) parts.push(app.summary);
+        if (app.service_address) parts.push(app.service_address);
+        return parts.join(" - ");
+      }).join("\n");
+      return "<span title=\"" + title.replace(/\"/g, "&quot;").replace(/</g, "&lt;") + "\">" + appointments.length + " active appointments</span>";
+    }
+
+    function bookingDetailsHtml(lead) {
+      var appointments = getLeadAppointments(lead);
+      if (!appointments.length) return "—";
+      return "<div class=\"booking-list\">" + appointments.map(function (app) {
+        var state = ((app.state || "booked") + "").toLowerCase();
+        var stateLabel = state === "cancelled" ? "Cancelled" : "Booked";
+        var parts = [];
+        var slotText = bookingDisplay(app.confirmed_slot);
+        if (slotText !== "—") parts.push(slotText);
+        if (app.summary) parts.push(app.summary);
+        if (app.service_address) parts.push(app.service_address);
+        if (!parts.length) parts.push(stateLabel);
+        var link = (state === "booked" && app.calendar_event_link)
+          ? "<a href=\"" + String(app.calendar_event_link).replace(/\"/g, "&quot;") + "\" target=\"_blank\" rel=\"noopener\" class=\"booking-calendar-link\">Calendar</a>"
+          : "";
+        return "<div class=\"booking-entry\"><strong>" + stateLabel + ":</strong> " + escapeHtml(parts.join(" - ")) + (link ? " " + link : "") + "</div>";
+      }).join("") + "</div>";
+    }
+
+    function callSidContext(lead) {
+      var metadata = metadataObject(lead && lead.metadata);
+      var latest = String((lead && lead.call_sid) || "").trim();
+      var primary = String((metadata && metadata.primary_call_sid) || latest || "").trim();
+      var related = Array.isArray(metadata.related_call_sids)
+        ? metadata.related_call_sids.map(function (item) { return String(item || "").trim(); }).filter(Boolean)
+        : [];
+      if (primary && related.indexOf(primary) < 0) related.unshift(primary);
+      if (latest && related.indexOf(latest) < 0) related.push(latest);
+      return {
+        latest: latest || "—",
+        primary: primary || latest || "—",
+        related: related
+      };
+    }
+
+    function relatedCallSidsHtml(callContext) {
+      var related = (callContext && Array.isArray(callContext.related)) ? callContext.related : [];
+      if (!related.length) return "—";
+      return "<div class=\"call-sid-list\">" + related.map(function (sid) {
+        return "<span class=\"call-sid-chip\">" + escapeHtml(sid) + "</span>";
+      }).join("") + "</div>";
+    }
+
+    function renderLead(r, index) {
+      const bookingCell = bookingCellHtml(r);
+      const isSpam = (r.lead_status || "").toLowerCase() === "spam";
+      return (
+        "<tr" + (isSpam ? " class=\"row-spam\"" : "") + " data-index=\"" + index + "\">" +
+        "<td class=\"cell-mono\">" + formatTime(r.created_at || r.timestamp) + "</td>" +
+        "<td>" + (r.lead_name || "—") + "</td>" +
+        "<td class=\"cell-mono\">" + (r.lead_phone || "—") + "</td>" +
+        "<td><span class=\"priority-pill " + priorityClass(r.priority) + "\">" + (r.priority || "—") + "</span></td>" +
+        "<td class=\"cell-summary\" title=\"" + (r.issue_summary || "").replace(/"/g, "&quot;") + "\">" + (r.issue_summary || "—") + "</td>" +
+        "<td class=\"cell-summary\" title=\"" + (r.call_summary || "").replace(/"/g, "&quot;") + "\">" + (r.call_summary || "—") + "</td>" +
+        "<td class=\"cell-summary\" title=\"" + (r.service_address || "").replace(/"/g, "&quot;") + "\">" + (r.service_address || "—") + "</td>" +
+        "<td>" + bookingCell + "</td>" +
+        "<td class=\"cell-summary\" title=\"" + (Array.isArray(r.notes) ? r.notes.join("\n") : "").replace(/"/g, "&quot;") + "\">" + notesSummary(r.notes) + "</td>" +
+        "<td><span class=\"status-badge " + statusBadgeClass(r.lead_status) + "\">" + (r.lead_status || "pending") + "</span></td>" +
+        "<td><button type=\"button\" class=\"btn-view\" data-index=\"" + index + "\">View</button></td>" +
+        "</tr>"
+      );
+    }
+
+    function setStatus(msg, isError, isCallCount) {
+      const el = document.getElementById("status");
+      el.textContent = msg;
+      el.className = "status" + (isError ? " error" : "") + (isCallCount ? " call-count" : "");
+    }
+
+    function updatePagination() {
+      const total = state.total;
+      const count = state.leads.length;
+      const paginationEl = document.getElementById("pagination");
+      const textEl = document.getElementById("pagination-text");
+      const prevBtn = document.getElementById("prev");
+      const nextBtn = document.getElementById("next");
+      if (total === 0 && count === 0) {
+        paginationEl.style.display = "none";
+        return;
+      }
+      paginationEl.style.display = "flex";
+      const start = total === 0 ? 0 : (state.page - 1) * state.pageSize + 1;
+      const end = (state.page - 1) * state.pageSize + count;
+      textEl.textContent = "Showing " + start + "–" + end + " of " + total;
+      prevBtn.disabled = state.page <= 1;
+      nextBtn.disabled = end >= total || count === 0;
+    }
+
+    var currentModalLead = null;
+    var currentModalIndex = -1;
+    var modalInitialState = null;
+    var modalNotesRef = null;
+
+    function escapeHtml(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+    function metadataSectionHtml(lead) {
+      if (!lead || !lead.metadata) return "";
+      var details = "";
+      if (typeof lead.metadata === "string") {
+        details = lead.metadata;
+      } else {
+        try {
+          details = JSON.stringify(lead.metadata, null, 2);
+        } catch (e) {
+          details = String(lead.metadata);
+        }
+      }
+      return "<dt>Metadata</dt><dd class=\"modal-metadata-dd\"><button type=\"button\" id=\"modal-toggle-metadata\" class=\"metadata-toggle-btn\" aria-expanded=\"false\" aria-controls=\"modal-metadata-details\">Show metadata details</button><pre id=\"modal-metadata-details\" class=\"metadata-details\" hidden>" + escapeHtml(details) + "</pre></dd>";
+    }
+    function renderNotesChips(notes, onRemove) {
+      if (!notes || !notes.length) return "<div class=\"notes-chips\"><span class=\"muted\" style=\"font-size:0.875rem;\">No notes yet. Add one below.</span></div>";
+      return "<div class=\"notes-chips\">" + notes.map(function (n, i) {
+        var t = escapeHtml((n || "").trim());
+        if (!t) return "";
+        return "<span class=\"note-chip\" data-note-index=\"" + i + "\"><span class=\"note-text\">" + t + "</span><button type=\"button\" class=\"note-chip-remove\" aria-label=\"Remove note\">&times;</button></span>";
+      }).filter(Boolean).join("") + "</div>";
+    }
+    function refreshNotesInModal(notes, notesListEl, leadId) {
+      notesListEl.innerHTML = renderNotesChips(notes, true);
+      notesListEl.querySelectorAll(".note-chip-remove").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var chip = btn.closest(".note-chip");
+          var i = parseInt(chip.getAttribute("data-note-index"), 10);
+          if (!isNaN(i) && notes[i] !== undefined) { notes.splice(i, 1); refreshNotesInModal(notes, notesListEl); }
+        });
+      });
+    }
+
+    function showDetail(lead, index) {
+      currentModalLead = lead;
+      currentModalIndex = index;
+      var notes = Array.isArray(lead.notes) ? lead.notes.slice() : [];
+      modalNotesRef = lead.id ? notes : null;
+      var bookingHtml = bookingDetailsHtml(lead);
+      var callContext = callSidContext(lead);
+      var body = document.getElementById("modal-body");
+      var noteOptions = buildNoteOptionsHtml();
+      var currentStatus = (lead.lead_status || "pending").toLowerCase();
+      var currentStatusLabel = (STATUS_OPTIONS.filter(function (o) { return o.value === currentStatus; })[0] || {}).label || currentStatus;
+      var statusBadgeClassModal = statusBadgeClass(lead.lead_status);
+      modalInitialState = lead.id ? {
+        name: (lead.lead_name || "").trim(),
+        address: (lead.service_address || "").trim(),
+        status: currentStatus,
+        notesJson: JSON.stringify(notes.slice())
+      } : null;
+      var statusOptions = STATUS_OPTIONS.map(function (o) {
+        var sel = currentStatus === o.value ? " selected" : "";
+        return "<option value=\"" + o.value + "\"" + sel + ">" + o.label + "</option>";
+      }).join("");
+      body.innerHTML =
+        "<dl>" +
+        "<dt>Name</dt><dd><input type=\"text\" id=\"modal-lead-name\" class=\"modal-edit\" value=\"" + (lead.lead_name || "").replace(/"/g, "&quot;").replace(/</g, "&lt;") + "\" placeholder=\"Contact name\" /></dd>" +
+        "<dt>Email / Phone</dt><dd>" + ([lead.lead_email, lead.lead_phone].filter(Boolean).join(", ") || "—") + "</dd>" +
+        "<dt>Priority</dt><dd><span class=\"priority " + priorityClass(lead.priority) + "\">" + (lead.priority || "—") + "</span></dd>" +
+        "<dt>Preferred callback time</dt><dd>" + (lead.preferred_callback_time || "—") + "</dd>" +
+        "<dt>Issue summary</dt><dd>" + (lead.issue_summary || "—") + "</dd>" +
+        "<dt>Call summary</dt><dd>" + (lead.call_summary || "—") + "</dd>" +
+        "<dt>Location</dt><dd><input type=\"text\" id=\"modal-service-address\" class=\"modal-edit\" value=\"" + (lead.service_address || "").replace(/"/g, "&quot;").replace(/</g, "&lt;") + "\" placeholder=\"Location\" /></dd>" +
+        "<dt>Booking</dt><dd>" + bookingHtml + "</dd>" +
+        "<dt>Recording</dt><dd>" + (function () { var r = lead.recording_link; if (!r) return "—"; var sid = (r.match(/\/Recordings\/(RE[a-fA-F0-9]{32})/) || [])[1]; if (!sid) return "<a href=\"" + r.replace(/"/g, "&quot;") + "\" target=\"_blank\" rel=\"noopener\">" + r + "</a>"; var playUrl = "/recordings/" + sid + "/media"; if (window.DASHBOARD_KEY) playUrl += "?key=" + encodeURIComponent(window.DASHBOARD_KEY); var downloadUrl = playUrl + (playUrl.indexOf("?") >= 0 ? "&" : "?") + "download=1"; var safeUrl = playUrl.replace(/"/g, "&quot;"); var hasTranscript = (lead.transcript || "").trim().length > 0; var showEnhance = lead.id && !lead.transcript_enhanced_at && hasTranscript; var btn = hasTranscript ? (showEnhance ? " <button type=\"button\" id=\"modal-enhance-transcript\" class=\"btn-generate-transcript\" data-lead-id=\"" + (lead.id || "").replace(/"/g, "&quot;") + "\">Enhance transcript</button>" : "") : " <button type=\"button\" id=\"modal-generate-transcript\" class=\"btn-generate-transcript\" data-recording-sid=\"" + sid + "\" data-lead-id=\"" + (lead.id || "").replace(/"/g, "&quot;") + "\">Generate transcript</button>"; return "<div class=\"custom-audio-wrap\"><audio preload=\"metadata\" src=\"" + safeUrl + "\" class=\"modal-audio-src\"></audio><button type=\"button\" class=\"custom-audio-play\" aria-label=\"Play\">▶</button><span class=\"custom-audio-time\">0:00 / 0:00</span><input type=\"range\" class=\"custom-audio-seek\" min=\"0\" max=\"100\" value=\"0\"></div> <a href=\"" + downloadUrl.replace(/"/g, "&quot;") + "\" target=\"_blank\" rel=\"noopener\">Download</a>" + btn; })() + "</dd>" +
+        "<dt>Transcript</dt>" + (lead.transcript_enhanced_at ? " <span class=\"muted\" style=\"font-weight:normal\">(Enhanced)</span>" : "") + "<dd id=\"modal-transcript-dd\" class=\"modal-transcript\">" + (lead.transcript || "—") + "</dd>" +
+        "<dt>Transcript summary</dt><dd id=\"modal-transcript-summary-dd\" class=\"modal-transcript-summary\">" + (lead.transcript_summary || "—") + "</dd>" +
+        "<dt>Issues / important details</dt><dd id=\"modal-transcript-issues-dd\" class=\"modal-transcript-issues\">" + (lead.transcript_issues || "—") + "</dd>" +
+        "<dt>Latest Call SID</dt><dd class=\"cell-mono\">" + escapeHtml(callContext.latest) + "</dd>" +
+        "<dt>Primary Call SID</dt><dd class=\"cell-mono\">" + escapeHtml(callContext.primary) + "</dd>" +
+        "<dt>Related Call SIDs</dt><dd>" + relatedCallSidsHtml(callContext) + "</dd>" +
+        "<dt>Timestamp</dt><dd>" + formatTime(lead.created_at || lead.timestamp) + "</dd>" +
+        "<dt>Company / Agent Label</dt><dd>" + ([lead.company_name, lead.agent_label || lead.industry].filter(Boolean).join(" / ") || "—") + "</dd>" +
+        metadataSectionHtml(lead) +
+        "</dl>" +
+        (lead.id ? (
+          "<div class=\"notes-section\"><dl>" +
+          "<dt>Notes</dt>" +
+          "<dd><div id=\"modal-notes-list\">" + renderNotesChips(notes) + "</div>" +
+          "<div class=\"notes-add\">" +
+          "<select id=\"modal-add-note\"><option value=\"\">Quick add…</option>" + noteOptions + "</select>" +
+          "<input type=\"text\" id=\"modal-custom-note\" placeholder=\"Custom note\" />" +
+          "<button type=\"button\" id=\"modal-add-note-btn\">Add</button>" +
+          "</div></dd>" +
+          "<dt>Status</dt>" +
+          "<dd><div class=\"modal-actions\"><button type=\"button\" id=\"modal-delete\">Delete</button><span id=\"modal-status-badge\" class=\"status-badge " + statusBadgeClassModal + "\">" + (currentStatusLabel || "Pending") + "</span> <select id=\"modal-lead-status\">" + statusOptions + "</select> <button type=\"button\" id=\"modal-save\">Save</button></div></dd>" +
+          "</dl></div>"
+        ) : "<p class=\"muted\" style=\"margin-top:1rem;\">Notes and status require lead id (Supabase).</p>");
+      if (lead.id) {
+        var notesListEl = document.getElementById("modal-notes-list");
+        function addNote(text) {
+          var v = (text || "").trim();
+          if (!v) return;
+          notes.push(v);
+          refreshNotesInModal(notes, notesListEl);
+        }
+        refreshNotesInModal(notes, notesListEl);
+        document.getElementById("modal-add-note").addEventListener("change", function () {
+          var v = this.value;
+          if (!v) return;
+          addNote(v);
+          this.value = "";
+        });
+        var customInput = document.getElementById("modal-custom-note");
+        document.getElementById("modal-add-note-btn").addEventListener("click", function () {
+          addNote(customInput.value);
+          customInput.value = "";
+        });
+        customInput.addEventListener("keydown", function (e) { if (e.key === "Enter") { addNote(customInput.value); customInput.value = ""; } });
+        var statusSelect = document.getElementById("modal-lead-status");
+        var badgeEl = document.getElementById("modal-status-badge");
+        statusSelect.addEventListener("change", function () {
+          var v = statusSelect.value;
+          var opt = STATUS_OPTIONS.filter(function (o) { return o.value === v; })[0];
+          var label = opt ? opt.label : v;
+          badgeEl.textContent = label;
+          badgeEl.className = "status-badge " + statusBadgeClass(v);
+        });
+        document.getElementById("modal-save").addEventListener("click", function () {
+          var newStatus = statusSelect.value;
+          var newName = document.getElementById("modal-lead-name").value.trim();
+          var newAddress = document.getElementById("modal-service-address").value.trim();
+          saveLeadUpdates(lead.id, notes, newStatus, newName, newAddress).catch(function () { });
+        });
+        document.getElementById("modal-delete").addEventListener("click", function () {
+          var leadLabel = (lead.lead_name || lead.lead_phone || "this call record").trim();
+          if (!confirm("Permanently delete call record \"" + leadLabel + "\"? This cannot be undone.")) return;
+          deleteLead(lead.id).catch(function () { });
+        });
+      }
+      var metadataToggleBtn = document.getElementById("modal-toggle-metadata");
+      if (metadataToggleBtn) {
+        metadataToggleBtn.addEventListener("click", function () {
+          var detailsEl = document.getElementById("modal-metadata-details");
+          if (!detailsEl) return;
+          var shouldShow = detailsEl.hasAttribute("hidden");
+          if (shouldShow) {
+            detailsEl.removeAttribute("hidden");
+            metadataToggleBtn.textContent = "Hide metadata details";
+            metadataToggleBtn.setAttribute("aria-expanded", "true");
+          } else {
+            detailsEl.setAttribute("hidden", "hidden");
+            metadataToggleBtn.textContent = "Show metadata details";
+            metadataToggleBtn.setAttribute("aria-expanded", "false");
+          }
+        });
+      }
+      var genBtn = document.getElementById("modal-generate-transcript");
+      if (genBtn) {
+        genBtn.addEventListener("click", function () {
+          var sid = this.getAttribute("data-recording-sid");
+          var leadId = this.getAttribute("data-lead-id") || "";
+          if (!sid) return;
+          this.disabled = true;
+          this.textContent = "Generating…";
+          var url = "/recordings/" + encodeURIComponent(sid) + "/transcribe";
+          if (leadId) url += "?record_id=" + encodeURIComponent(leadId);
+          if (window.DASHBOARD_KEY) url += (url.indexOf("?") >= 0 ? "&" : "?") + "key=" + encodeURIComponent(window.DASHBOARD_KEY);
+          fetch(url, { method: "POST", credentials: "include" }).then(function (res) {
+            if (!res.ok) throw new Error(res.statusText || res.status);
+            return res.json();
+          }).then(function (data) {
+            var transcript = data.transcript || "";
+            var dd = document.getElementById("modal-transcript-dd");
+            if (dd) dd.textContent = transcript || "—";
+            if (state.leads[currentModalIndex]) state.leads[currentModalIndex].transcript = transcript;
+            genBtn.remove();
+          }).catch(function (e) {
+            genBtn.disabled = false;
+            genBtn.textContent = "Generate transcript";
+            alert("Transcription failed: " + (e.message || "Unknown error"));
+          });
+        });
+      }
+      var enhanceBtn = document.getElementById("modal-enhance-transcript");
+      if (enhanceBtn) {
+        enhanceBtn.addEventListener("click", function () {
+          var leadId = this.getAttribute("data-lead-id") || "";
+          if (!leadId) return;
+          this.disabled = true;
+          this.textContent = "Enhancing…";
+          var url = "/calls/" + encodeURIComponent(leadId) + "/enhance-transcript";
+          if (window.DASHBOARD_KEY) url += "?key=" + encodeURIComponent(window.DASHBOARD_KEY);
+          var reqHeaders = {};
+          if (window.DASHBOARD_KEY) reqHeaders["X-Dashboard-Key"] = window.DASHBOARD_KEY;
+          fetch(url, { method: "POST", headers: reqHeaders, credentials: "include" }).then(function (res) {
+            if (!res.ok) throw new Error(res.statusText || res.status);
+            return res.json();
+          }).then(function (data) {
+            var transcript = data.transcript || "";
+            var summary = data.transcript_summary || "";
+            var issues = data.transcript_issues || "";
+            var transcriptDd = document.getElementById("modal-transcript-dd");
+            if (transcriptDd) transcriptDd.textContent = transcript || "—";
+            var summaryDd = document.getElementById("modal-transcript-summary-dd");
+            if (summaryDd) summaryDd.textContent = summary || "—";
+            var issuesDd = document.getElementById("modal-transcript-issues-dd");
+            if (issuesDd) issuesDd.textContent = issues || "—";
+            if (state.leads[currentModalIndex]) {
+              state.leads[currentModalIndex].transcript = transcript;
+              state.leads[currentModalIndex].transcript_enhanced_at = data.transcript_enhanced_at || true;
+              state.leads[currentModalIndex].transcript_summary = summary || null;
+              state.leads[currentModalIndex].transcript_issues = issues || null;
+            }
+            enhanceBtn.remove();
+          }).catch(function (e) {
+            enhanceBtn.disabled = false;
+            enhanceBtn.textContent = "Enhance transcript";
+            alert("Enhancement failed: " + (e.message || "Unknown error"));
+          });
+        });
+      }
+      initCustomAudioInModal();
+      document.getElementById("modal").classList.add("open");
+    }
+
+    function initCustomAudioInModal() {
+      var wrap = document.querySelector("#modal-body .custom-audio-wrap");
+      if (!wrap) return;
+      var audio = wrap.querySelector("audio.modal-audio-src");
+      var playBtn = wrap.querySelector(".custom-audio-play");
+      var timeEl = wrap.querySelector(".custom-audio-time");
+      var range = wrap.querySelector(".custom-audio-seek");
+      if (!audio || !playBtn || !timeEl || !range) return;
+      function fmt(s) {
+        if (typeof s !== "number" || !isFinite(s)) return "0:00";
+        var m = Math.floor(s / 60);
+        var sec = Math.floor(s % 60);
+        return m + ":" + (sec < 10 ? "0" : "") + sec;
+      }
+      function updateTime() {
+        var cur = audio.currentTime;
+        var dur = audio.duration;
+        timeEl.textContent = fmt(cur) + " / " + (dur && isFinite(dur) ? fmt(dur) : "0:00");
+        range.value = dur && isFinite(dur) ? (cur / dur * 100) : 0;
+      }
+      playBtn.addEventListener("click", function () {
+        if (audio.paused) { audio.play(); playBtn.textContent = "\u23F8"; playBtn.setAttribute("aria-label", "Pause"); }
+        else { audio.pause(); playBtn.textContent = "\u25B6"; playBtn.setAttribute("aria-label", "Play"); }
+      });
+      audio.addEventListener("timeupdate", updateTime);
+      audio.addEventListener("loadedmetadata", updateTime);
+      audio.addEventListener("ended", function () { playBtn.textContent = "\u25B6"; playBtn.setAttribute("aria-label", "Play"); updateTime(); });
+      range.addEventListener("input", function () {
+        if (audio.duration && isFinite(audio.duration)) audio.currentTime = (parseFloat(range.value, 10) / 100) * audio.duration;
+      });
+      updateTime();
+    }
+
+    async function saveLeadUpdates(leadId, notes, leadStatus, leadName, serviceAddress) {
+      var headers = { "Content-Type": "application/json" };
+      if (window.DASHBOARD_KEY) headers["X-Dashboard-Key"] = window.DASHBOARD_KEY;
+      var payload = { notes: notes, lead_status: leadStatus || "pending" };
+      if (leadName !== undefined) payload.lead_name = leadName;
+      if (serviceAddress !== undefined) payload.service_address = serviceAddress;
+      try {
+        var res = await fetch("/calls/" + encodeURIComponent(leadId), {
+          method: "PATCH",
+          headers: headers,
+          body: JSON.stringify(payload),
+          credentials: "include"
+        });
+        if (!res.ok) {
+          var t = await res.text();
+          try { var j = JSON.parse(t); if (j.detail) t = j.detail; } catch (_) { }
+          setStatus("Save failed: " + (t || res.status), true);
+          throw new Error(t || res.status);
+        }
+        if (currentModalIndex >= 0 && state.leads[currentModalIndex]) {
+          state.leads[currentModalIndex].notes = notes;
+          state.leads[currentModalIndex].lead_status = leadStatus;
+          if (leadName !== undefined) state.leads[currentModalIndex].lead_name = leadName;
+          if (serviceAddress !== undefined) state.leads[currentModalIndex].service_address = serviceAddress;
+        }
+        setStatus("Saved.", false);
+        closeModal();
+        loadCallRecords();
+      } catch (e) {
+        setStatus("Save failed: " + e.message, true);
+        throw e;
+      }
+    }
+
+    async function deleteLead(leadId) {
+      var deleteBtn = document.getElementById("modal-delete");
+      if (deleteBtn) deleteBtn.disabled = true;
+      var headers = {};
+      if (window.DASHBOARD_KEY) headers["X-Dashboard-Key"] = window.DASHBOARD_KEY;
+      try {
+        var res = await fetch("/calls/" + encodeURIComponent(leadId), {
+          method: "DELETE",
+          headers: headers,
+          credentials: "include"
+        });
+        if (!res.ok) {
+          var t = await res.text();
+          try { var j = JSON.parse(t); if (j.detail) t = j.detail; } catch (_) { }
+          setStatus("Delete failed: " + (t || res.status), true);
+          throw new Error(t || res.status);
+        }
+        setStatus("Call record deleted.", false);
+        closeModal();
+        loadCallRecords();
+      } catch (e) {
+        setStatus("Delete failed: " + e.message, true);
+        throw e;
+      } finally {
+        if (deleteBtn) deleteBtn.disabled = false;
+      }
+    }
+
+    function closeModal() {
+      modalInitialState = null;
+      modalNotesRef = null;
+      document.getElementById("modal").classList.remove("open");
+    }
+
+    function requestCloseModal() {
+      if (!modalInitialState) {
+        closeModal();
+        return;
+      }
+      var nameEl = document.getElementById("modal-lead-name");
+      var addressEl = document.getElementById("modal-service-address");
+      var statusEl = document.getElementById("modal-lead-status");
+      if (!nameEl || !addressEl || !statusEl) {
+        closeModal();
+        return;
+      }
+      var curName = nameEl.value.trim();
+      var curAddress = addressEl.value.trim();
+      var curStatus = statusEl.value;
+      var curNotesJson = JSON.stringify((modalNotesRef || []).slice());
+      var dirty = curName !== modalInitialState.name || curAddress !== modalInitialState.address || curStatus !== modalInitialState.status || curNotesJson !== modalInitialState.notesJson;
+      if (!dirty) {
+        closeModal();
+        return;
+      }
+      if (!confirm("You have unsaved changes. Save before closing?")) {
+        closeModal();
+        return;
+      }
+      saveLeadUpdates(currentModalLead.id, modalNotesRef, curStatus, curName, curAddress).then(function () {
+        closeModal();
+        loadCallRecords();
+      }).catch(function (e) {
+        setStatus("Save failed: " + (e && e.message || "Unknown error"), true);
+      });
+    }
+
+    function renderTableBody(previousLeadIds) {
+      const tbody = document.getElementById("tbody");
+      if (state.leads.length === 0) {
+        tbody.innerHTML = "<tr><td colspan=\"11\" class=\"empty\">No call records match the filters.</td></tr>";
+      } else {
+        tbody.innerHTML = state.leads.map(function (r, i) { return renderLead(r, i); }).join("");
+        if (previousLeadIds && previousLeadIds.length >= 0) {
+          const prevSet = new Set(previousLeadIds);
+          const rows = tbody.querySelectorAll("tr[data-index]");
+          rows.forEach(function (tr) {
+            const i = parseInt(tr.getAttribute("data-index"), 10);
+            if (!isNaN(i) && state.leads[i] && !prevSet.has(state.leads[i].id)) tr.classList.add("row-new");
+          });
+          setTimeout(function () { tbody.querySelectorAll("tr.row-new").forEach(function (tr) { tr.classList.remove("row-new"); }); }, 2500);
+        }
+      }
+      updatePagination();
+    }
+
+    async function loadCallRecords() {
+      const tbody = document.getElementById("tbody");
+      setStatus("Loading…", false);
+      loadInProgress = true;
+      const headers = {};
+      if (window.DASHBOARD_KEY) headers["X-Dashboard-Key"] = window.DASHBOARD_KEY;
+      try {
+        const res = await fetch(buildCallRecordsUrl(), { headers, credentials: "include" });
+        if (!res.ok) {
+          if (res.status === 401) {
+            window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname + (window.location.search || ""));
+            return;
+          }
+          const t = await res.text();
+          setStatus("Error " + res.status + ": " + t.slice(0, 80), true);
+          tbody.innerHTML = "<tr><td colspan=\"11\" class=\"empty\">" + (t || res.status) + "</td></tr>";
+          return;
+        }
+        const data = await res.json();
+        state.leads = data.call_records || [];
+        state.total = typeof data.total === "number" ? data.total : state.leads.length;
+        setStatus(state.total + " call record(s)" + (state.priority || state.date_from || state.date_to || state.has_booking || state.has_address || state.is_spam || state.status || state.address ? " (filtered)" : ""), false, true);
+        renderTableBody();
+      } catch (e) {
+        setStatus("Request failed: " + e.message, true);
+        tbody.innerHTML = "<tr><td colspan=\"11\" class=\"empty\">" + e.message + "</td></tr>";
+      } finally {
+        loadInProgress = false;
+      }
+    }
+
+    async function refetchCallRecordsQuiet() {
+      if (loadInProgress) return;
+      const headers = {};
+      if (window.DASHBOARD_KEY) headers["X-Dashboard-Key"] = window.DASHBOARD_KEY;
+      try {
+        const res = await fetch(buildCallRecordsUrl(), { headers, credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json();
+        const newCallRecords = data.call_records || [];
+        const newTotal = typeof data.total === "number" ? data.total : newCallRecords.length;
+        const prevIds = state.leads.map(function (r) { return r.id; });
+        const snapOld = JSON.stringify({ total: state.total, leads: state.leads });
+        const snapNew = JSON.stringify({ total: newTotal, leads: newCallRecords });
+        if (snapOld === snapNew) return;
+        state.leads = newCallRecords;
+        state.total = newTotal;
+        setStatus(state.total + " call record(s)" + (state.priority || state.date_from || state.date_to || state.has_booking || state.has_address || state.is_spam || state.status || state.address ? " (filtered)" : ""), false, true);
+        renderTableBody(prevIds);
+      } catch (_) { }
+    }
+
+    function startPolling() {
+      if (pollTimerId) return;
+      pollTimerId = setInterval(refetchCallRecordsQuiet, POLL_INTERVAL_MS);
+    }
+    function stopPolling() {
+      if (pollTimerId) { clearInterval(pollTimerId); pollTimerId = null; }
+    }
+
+    function stopCallRecordsSse() {
+      if (leadsEsReconnectTimer) {
+        clearTimeout(leadsEsReconnectTimer);
+        leadsEsReconnectTimer = null;
+      }
+      if (leadsEs) {
+        try {
+          leadsEs.onerror = null;
+          leadsEs.close();
+        } catch (e) { }
+        leadsEs = null;
+      }
+    }
+
+    function scheduleCallRecordsSseReconnect() {
+      if (leadsEsReconnectTimer || document.hidden) return;
+      leadsEsReconnectTimer = setTimeout(function () {
+        leadsEsReconnectTimer = null;
+        startCallRecordsSse();
+      }, leadsEsBackoffMs);
+      leadsEsBackoffMs = Math.min(leadsEsBackoffMs * 2, 30000);
+    }
+
+    function startCallRecordsSse() {
+      if (typeof EventSource === "undefined") return;
+      if (document.hidden) return;
+      if (leadsEs && leadsEs.readyState !== EventSource.CLOSED) return;
+      stopCallRecordsSse();
+      var url = "/calls/events";
+      if (window.DASHBOARD_KEY) url += "?key=" + encodeURIComponent(window.DASHBOARD_KEY);
+      try {
+        leadsEs = new EventSource(url, { withCredentials: true });
+        leadsEs.onopen = function () { leadsEsBackoffMs = 2000; };
+        leadsEs.onmessage = function (ev) {
+          try {
+            var o = JSON.parse(ev.data || "{}");
+            if (o.type === "call_records_changed") refetchCallRecordsQuiet();
+          } catch (e) { refetchCallRecordsQuiet(); }
+        };
+        leadsEs.onerror = function () {
+          try { leadsEs.close(); } catch (e2) { }
+          leadsEs = null;
+          scheduleCallRecordsSseReconnect();
+        };
+      } catch (e) {
+        scheduleCallRecordsSseReconnect();
+      }
+    }
+
+    function applyFiltersFromForm() {
+      state.priority = document.getElementById("filter-priority").value.trim();
+      var range = getDateRangeFromForm();
+      state.date_from = range.date_from;
+      state.date_to = range.date_to;
+      state.has_booking = document.getElementById("filter-has-booking").checked;
+      state.has_address = document.getElementById("filter-has-address").checked;
+      state.is_spam = document.getElementById("filter-is-spam").checked;
+      state.status = document.getElementById("filter-status").value.trim();
+      state.address = document.getElementById("filter-address").value.trim();
+      state.page = 1;
+      loadCallRecords();
+    }
+    var addressSearchDebounce = null;
+    function runAddressSearch() {
+      if (addressSearchDebounce) clearTimeout(addressSearchDebounce);
+      addressSearchDebounce = null;
+      state.address = document.getElementById("filter-address").value.trim();
+      state.page = 1;
+      loadCallRecords();
+    }
+    document.getElementById("filter-address").addEventListener("input", function () {
+      if (addressSearchDebounce) clearTimeout(addressSearchDebounce);
+      addressSearchDebounce = setTimeout(runAddressSearch, 350);
+    });
+    document.getElementById("filter-address").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runAddressSearch();
+      }
+    });
+    document.getElementById("refresh").addEventListener("click", function () { loadCallRecords(); });
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        stopPolling();
+        stopCallRecordsSse();
+      } else {
+        refetchCallRecordsQuiet();
+        startPolling();
+        startCallRecordsSse();
+      }
+    });
+    document.getElementById("filter-date-preset").addEventListener("change", function () {
+      applyDatePreset(this.value);
+      applyFiltersFromForm();
+    });
+    document.getElementById("filter-date-from").addEventListener("change", function () {
+      document.getElementById("filter-date-preset").value = "";
+      if (!this.value.trim() && timeFromEl) timeFromEl.value = "";
+      applyFiltersFromForm();
+    });
+    document.getElementById("filter-date-to").addEventListener("change", function () {
+      document.getElementById("filter-date-preset").value = "";
+      if (!this.value.trim() && timeToEl) timeToEl.value = "";
+      applyFiltersFromForm();
+    });
+    var timeFromEl = document.getElementById("filter-time-from");
+    var timeToEl = document.getElementById("filter-time-to");
+    if (timeFromEl) timeFromEl.addEventListener("change", function () { document.getElementById("filter-date-preset").value = ""; applyFiltersFromForm(); });
+    if (timeToEl) timeToEl.addEventListener("change", function () { document.getElementById("filter-date-preset").value = ""; applyFiltersFromForm(); });
+    document.getElementById("apply-filters").addEventListener("click", function () {
+      applyFiltersFromForm();
+    });
+    document.getElementById("prev").addEventListener("click", function () {
+      if (state.page > 1) { state.page--; loadCallRecords(); }
+    });
+    document.getElementById("next").addEventListener("click", function () {
+      if ((state.page - 1) * state.pageSize + state.leads.length < state.total) { state.page++; loadCallRecords(); }
+    });
+    document.getElementById("page-size").addEventListener("change", function () {
+      state.pageSize = parseInt(this.value, 10);
+      state.page = 1;
+      loadCallRecords();
+    });
+    document.getElementById("tbody").addEventListener("click", function (e) {
+      var tr = e.target.closest("tr[data-index]");
+      if (!tr) return;
+      var i = parseInt(tr.getAttribute("data-index"), 10);
+      if (isNaN(i) || !state.leads[i]) return;
+      showDetail(state.leads[i], i);
+    });
+    document.getElementById("modal-close").addEventListener("click", requestCloseModal);
+    document.getElementById("modal").addEventListener("click", function (e) {
+      if (e.target === document.getElementById("modal")) requestCloseModal();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      if (document.getElementById("missed-calls-modal").classList.contains("open") && window.closeMissedCallsModal) window.closeMissedCallsModal();
+      else if (document.getElementById("outbound-modal").classList.contains("open")) closeOutboundModal();
+      else if (document.getElementById("settings-modal").classList.contains("open")) closeSettingsModal();
+      else if (document.getElementById("modal").classList.contains("open")) requestCloseModal();
+    });
+
+    function buildSettingsUrl() {
+      var base = "/settings";
+      if (window.DASHBOARD_KEY) base += "?key=" + encodeURIComponent(window.DASHBOARD_KEY);
+      return base;
+    }
+    function buildSettingsHeaders() {
+      var h = { "Content-Type": "application/json" };
+      if (window.DASHBOARD_KEY) h["X-Dashboard-Key"] = window.DASHBOARD_KEY;
+      return h;
+    }
+    function closeSettingsModal() {
+      document.getElementById("settings-modal").classList.remove("open");
+    }
+    function updateVadFieldsVisibility() {
+      var modeEl = document.getElementById("setting-VAD_MODE");
+      var serverBlock = document.getElementById("vad-server-only-fields");
+      var semanticBlock = document.getElementById("vad-semantic-only-fields");
+      if (!modeEl) return;
+      var isServerVad = (modeEl.value || "").toLowerCase() === "server_vad";
+      if (serverBlock) serverBlock.classList.toggle("hidden", !isServerVad);
+      if (semanticBlock) semanticBlock.classList.toggle("hidden", isServerVad);
+    }
+    function populateSettingsForm(data) {
+      var keys = ["TRANSCRIPTION_MODEL", "TRANSCRIPT_ENHANCEMENT_ENABLED", "OPENAI_REALTIME_MODEL", "REALTIME_REASONING_EFFORT", "TRANSCRIPT_ENHANCEMENT_MODEL", "CALL_RECORDING_ENABLED", "VOICE", "ASSISTANT_LANGUAGE", "LANGUAGE_SWITCH_POLICY", "ASSISTANT_ACCENT", "ASSISTANT_ACCENT_STRENGTH", "TEMPERATURE", "COMPANY_NAME", "AGENT_NAME", "HUMAN_TRANSFER_ENABLED", "HUMAN_TRANSFER_DIAL_NUMBER", "GOOGLE_CALENDAR_ID", "BOOKING_SLOT_DURATION_MINUTES", "BUSINESS_APPOINTMENT_OPENING_TIME", "BUSINESS_APPOINTMENT_CLOSING_TIME", "AVAILABILITY_MAX_SLOTS_PER_BUCKET_PER_DAY", "BOOKING_DAYS_ENABLED", "VAD_THRESHOLD", "VAD_SILENCE_DURATION_MS", "VAD_PREFIX_PADDING_MS", "VAD_DEBOUNCE_AFTER_OUTGOING_MS", "VAD_INTERRUPTION_CONFIRM_MS", "VAD_MODE", "VAD_EAGERNESS"];
+      keys.forEach(function (key) {
+        var el = document.getElementById("setting-" + key) || document.querySelector("[name=\"" + key + "\"]");
+        if (!el) return;
+        var val = data[key];
+        if (el.type === "checkbox") el.checked = val === true || val === "true" || val === "1" || val === 1;
+        else el.value = val != null ? String(val) : "";
+      });
+      updateVadFieldsVisibility();
+    }
+    function collectSettingsForm() {
+      var keys = ["TRANSCRIPTION_MODEL", "TRANSCRIPT_ENHANCEMENT_ENABLED", "OPENAI_REALTIME_MODEL", "REALTIME_REASONING_EFFORT", "TRANSCRIPT_ENHANCEMENT_MODEL", "CALL_RECORDING_ENABLED", "VOICE", "ASSISTANT_LANGUAGE", "LANGUAGE_SWITCH_POLICY", "ASSISTANT_ACCENT", "ASSISTANT_ACCENT_STRENGTH", "TEMPERATURE", "COMPANY_NAME", "AGENT_NAME", "HUMAN_TRANSFER_ENABLED", "HUMAN_TRANSFER_DIAL_NUMBER", "GOOGLE_CALENDAR_ID", "BOOKING_SLOT_DURATION_MINUTES", "BUSINESS_APPOINTMENT_OPENING_TIME", "BUSINESS_APPOINTMENT_CLOSING_TIME", "AVAILABILITY_MAX_SLOTS_PER_BUCKET_PER_DAY", "BOOKING_DAYS_ENABLED", "VAD_PREFIX_PADDING_MS", "VAD_DEBOUNCE_AFTER_OUTGOING_MS", "VAD_INTERRUPTION_CONFIRM_MS", "VAD_MODE"];
+      var vadModeEl = document.getElementById("setting-VAD_MODE");
+      var isServerVad = vadModeEl && (vadModeEl.value || "").toLowerCase() === "server_vad";
+      if (isServerVad) keys.push("VAD_THRESHOLD", "VAD_SILENCE_DURATION_MS");
+      else keys.push("VAD_EAGERNESS");
+      var payload = {};
+      keys.forEach(function (key) {
+        var el = document.getElementById("setting-" + key) || document.querySelector("[name=\"" + key + "\"]");
+        if (!el) return;
+        if (el.type === "checkbox") payload[key] = el.checked;
+        else if (el.type === "number") payload[key] = el.value === "" ? null : (el.value.indexOf(".") >= 0 ? parseFloat(el.value) : parseInt(el.value, 10));
+        else payload[key] = el.value.trim();
+      });
+      return payload;
+    }
+    function openSettingsModal() {
+      var modal = document.getElementById("settings-modal");
+      var loadStatus = document.getElementById("settings-load-status");
+      var form = document.getElementById("settings-form");
+      var footer = document.getElementById("settings-modal-footer");
+      modal.classList.add("open");
+      loadStatus.textContent = "Loading…";
+      loadStatus.className = "status";
+      form.style.display = "none";
+      footer.style.display = "none";
+      var settingsUrl = buildSettingsUrl();
+      var headers = buildSettingsHeaders();
+      var opts = { headers: headers, credentials: "include" };
+      fetch(settingsUrl, opts)
+        .then(function (res) { if (!res.ok) throw new Error(res.statusText || res.status); return res.json(); })
+        .then(function (data) {
+          loadStatus.style.display = "none";
+          form.style.display = "grid";
+          footer.style.display = "flex";
+          populateSettingsForm(data);
+          document.getElementById("settings-save-status").textContent = "Changes apply to new calls.";
+          document.getElementById("settings-save-status").className = "status";
+        })
+        .catch(function (err) {
+          loadStatus.textContent = "Failed to load: " + err.message;
+          loadStatus.className = "status error";
+        });
+    }
+    document.getElementById("settings-btn").addEventListener("click", openSettingsModal);
+    document.getElementById("setting-VAD_MODE").addEventListener("change", updateVadFieldsVisibility);
+    document.getElementById("settings-modal-close").addEventListener("click", closeSettingsModal);
+    document.getElementById("settings-cancel-btn").addEventListener("click", closeSettingsModal);
+    document.getElementById("settings-modal").addEventListener("click", function (e) {
+      if (e.target.id === "settings-modal") closeSettingsModal();
+    });
+    document.getElementById("settings-save-btn").addEventListener("click", function () {
+      var statusEl = document.getElementById("settings-save-status");
+      statusEl.textContent = "Saving…";
+      statusEl.className = "status";
+      var payload = collectSettingsForm();
+      fetch(buildSettingsUrl(), { method: "PATCH", headers: buildSettingsHeaders(), body: JSON.stringify(payload), credentials: "include" })
+        .then(function (res) {
+          if (!res.ok) return res.json().then(function (o) { throw new Error(o.detail || res.statusText); });
+          return res.json();
+        })
+        .then(function () {
+          statusEl.textContent = "Saved. Changes apply to new calls.";
+          statusEl.className = "status success";
+        })
+        .catch(function (err) {
+          statusEl.textContent = "Error: " + err.message;
+          statusEl.className = "status error";
+        });
+    });
+
+    // =========================================================================
+    // Outbound campaigns module
+    // =========================================================================
+    (function () {
+      var obModal = document.getElementById("outbound-modal");
+      var obListView = document.getElementById("ob-list-view");
+      var obEditorView = document.getElementById("ob-editor-view");
+      var obListEl = document.getElementById("ob-campaign-list");
+      var obListStatus = document.getElementById("ob-list-status");
+      var obFooterStatus = document.getElementById("ob-footer-status");
+      var obSaveBtn = document.getElementById("ob-save-btn");
+      var obStartBtn = document.getElementById("ob-start-btn");
+      var obPauseBtn = document.getElementById("ob-pause-btn");
+      var obProgress = document.getElementById("ob-progress");
+      var obProgressFill = document.getElementById("ob-progress-fill");
+      var obProgressText = document.getElementById("ob-progress-text");
+      var obTypeSelect = document.getElementById("ob-type");
+      var obTbody = document.getElementById("ob-contacts-tbody");
+      var obContactsCount = document.getElementById("ob-contacts-count");
+      var campaignTypes = {};
+      var currentCampaignId = null;
+      var obPollTimer = null;
+
+      function obHeaders(json) {
+        var h = {};
+        if (json) h["Content-Type"] = "application/json";
+        if (window.DASHBOARD_KEY) h["X-Dashboard-Key"] = window.DASHBOARD_KEY;
+        return h;
+      }
+      function obUrl(path) {
+        var u = path;
+        if (window.DASHBOARD_KEY) u += (u.indexOf("?") >= 0 ? "&" : "?") + "key=" + encodeURIComponent(window.DASHBOARD_KEY);
+        return u;
+      }
+
+      window.closeOutboundModal = function () {
+        obModal.classList.remove("open");
+        if (obPollTimer) { clearInterval(obPollTimer); obPollTimer = null; }
+      };
+
+      function openOutboundModal() {
+        obModal.classList.add("open");
+        showListView();
+      }
+
+      function showListView() {
+        obListView.style.display = "";
+        obEditorView.style.display = "none";
+        obSaveBtn.style.display = "none";
+        obStartBtn.style.display = "none";
+        obPauseBtn.style.display = "none";
+        currentCampaignId = null;
+        if (obPollTimer) { clearInterval(obPollTimer); obPollTimer = null; }
+        loadCampaigns();
+      }
+
+      function showEditorView(campaign) {
+        obListView.style.display = "none";
+        obEditorView.style.display = "flex";
+        obFooterStatus.textContent = "";
+        currentCampaignId = campaign ? campaign.id : null;
+        document.getElementById("ob-name").value = campaign ? (campaign.name || "") : "";
+        document.getElementById("ob-concurrency").value = campaign ? (campaign.concurrency || 1) : 1;
+        obTbody.innerHTML = "";
+        updateContactsCount();
+        obProgress.style.display = "none";
+
+        if (campaign) {
+          obTypeSelect.value = campaign.campaign_type || "general";
+          document.getElementById("ob-message").value = campaign.message_template || "";
+        } else {
+          var firstKey = obTypeSelect.options.length ? obTypeSelect.options[0].value : "general";
+          obTypeSelect.value = firstKey;
+          var typeCfg = campaignTypes[firstKey] || {};
+          document.getElementById("ob-message").value = typeCfg.default_script || "";
+        }
+
+        var isRunning = campaign && campaign.status === "running";
+        var isPaused = campaign && campaign.status === "paused";
+        var isCompleted = campaign && campaign.status === "completed";
+        var isDraft = !campaign || campaign.status === "draft";
+
+        obSaveBtn.style.display = isDraft ? "" : "none";
+        obStartBtn.style.display = (isDraft || isPaused || isCompleted) ? "" : "none";
+        obPauseBtn.style.display = isRunning ? "" : "none";
+
+        if (campaign && campaign.contacts && campaign.contacts.length) {
+          campaign.contacts.forEach(function (c) {
+            addContactRow(c.name || "", c.phone || "", c.email || "", JSON.stringify(c.custom_fields || {}), c.status, c.id);
+          });
+        }
+
+        if (isRunning || isPaused || isCompleted) {
+          obProgress.style.display = "";
+          startProgressPolling();
+        }
+      }
+
+      function addContactRow(name, phone, email, extra, status, contactId) {
+        var tr = document.createElement("tr");
+        if (contactId) tr.dataset.contactId = contactId;
+        if (status === "calling") tr.classList.add("ob-row-calling");
+        var statusBadge = status && status !== "pending" ? ' <span class="ob-badge ' + status + '">' + status + '</span>' : "";
+        // Call: disabled when already "calling". Stop: end active call. Reset: set to pending when stuck/failed
+        var isCallable = !!contactId && status !== "calling";
+        var callBtnHtml = contactId
+          ? '<button type="button" class="ob-call-btn" ' + (isCallable ? '' : 'disabled') + ' title="Call this contact">' + (status === "calling" ? "Calling" : "Call") + '</button>'
+          : '';
+        var stopBtnHtml = status === "calling" && contactId
+          ? ' <button type="button" class="ob-stop-btn" title="End this call">Stop</button>'
+          : '';
+        var resetBtnHtml = (status === "calling" || status === "failed") && contactId
+          ? ' <button type="button" class="ob-reset-btn" title="Reset to pending so you can call again">Reset</button>'
+          : '';
+        tr.innerHTML =
+          '<td><input type="text" class="ob-c-name" value="' + esc(name) + '" placeholder="Name" /></td>' +
+          '<td><input type="text" class="ob-c-phone" value="' + esc(phone) + '" placeholder="+1…" /></td>' +
+          '<td><input type="text" class="ob-c-email" value="' + esc(email) + '" placeholder="Email" /></td>' +
+          '<td><input type="text" class="ob-c-extra" value="' + esc(extra === "{}" ? "" : extra) + '" placeholder="custom JSON" />' + statusBadge + '</td>' +
+          '<td>' + callBtnHtml + stopBtnHtml + resetBtnHtml + '</td>' +
+          '<td><button type="button" class="ob-del-btn" title="Remove">&times;</button></td>';
+        tr.querySelector(".ob-del-btn").addEventListener("click", function () { tr.remove(); updateContactsCount(); });
+        var callBtn = tr.querySelector(".ob-call-btn");
+        if (callBtn) {
+          callBtn.addEventListener("click", function () { callSingleContact(contactId, callBtn); });
+        }
+        var stopBtn = tr.querySelector(".ob-stop-btn");
+        if (stopBtn) {
+          stopBtn.addEventListener("click", function () { stopContact(contactId, stopBtn); });
+        }
+        var resetBtn = tr.querySelector(".ob-reset-btn");
+        if (resetBtn) {
+          resetBtn.addEventListener("click", function () { resetContact(contactId, resetBtn); });
+        }
+        obTbody.appendChild(tr);
+        updateContactsCount();
+      }
+
+      function stopContact(contactId, btn) {
+        if (!currentCampaignId || !contactId) return;
+        btn.disabled = true;
+        btn.textContent = "Stopping…";
+        fetch(obUrl("/outbound/campaigns/" + currentCampaignId + "/contacts/" + contactId + "/stop"), {
+          method: "POST", headers: obHeaders(true), credentials: "include"
+        })
+          .then(function (r) { if (!r.ok) return r.json().then(function (o) { throw new Error(o.detail || r.statusText); }); return r.json(); })
+          .then(function () {
+            obFooterStatus.textContent = "Call ended. Refreshing…";
+            startProgressPolling();
+            setTimeout(function () { loadCampaignEditor(currentCampaignId); }, 1500);
+          })
+          .catch(function (err) {
+            btn.disabled = false;
+            btn.textContent = "Stop";
+            obFooterStatus.textContent = "Stop failed: " + err.message;
+          });
+      }
+
+      function resetContact(contactId, btn) {
+        if (!currentCampaignId || !contactId) return;
+        btn.disabled = true;
+        btn.textContent = "Resetting…";
+        fetch(obUrl("/outbound/campaigns/" + currentCampaignId + "/contacts/" + contactId + "/reset"), {
+          method: "POST", headers: obHeaders(true), credentials: "include"
+        })
+          .then(function (r) { if (!r.ok) return r.json().then(function (o) { throw new Error(o.detail || r.statusText); }); return r.json(); })
+          .then(function () {
+            obFooterStatus.textContent = "Contact reset to pending. You can call again.";
+            loadCampaignEditor(currentCampaignId);
+          })
+          .catch(function (err) {
+            btn.disabled = false;
+            btn.textContent = "Reset";
+            obFooterStatus.textContent = "Reset failed: " + err.message;
+          });
+      }
+
+      function callSingleContact(contactId, btn) {
+        if (!currentCampaignId || !contactId) return;
+        btn.disabled = true;
+        btn.textContent = "Calling…";
+        fetch(obUrl("/outbound/campaigns/" + currentCampaignId + "/contacts/" + contactId + "/call"), {
+          method: "POST", headers: obHeaders(true), credentials: "include"
+        })
+          .then(function (r) { if (!r.ok) return r.json().then(function (o) { throw new Error(o.detail || r.statusText); }); return r.json(); })
+          .then(function (data) {
+            btn.textContent = "Calling";
+            obFooterStatus.textContent = data.message || "Call initiated.";
+            startProgressPolling();
+          })
+          .catch(function (err) {
+            btn.textContent = "Call";
+            btn.disabled = false;
+            obFooterStatus.textContent = "Call failed: " + err.message;
+          });
+      }
+
+      function updateContactsCount() {
+        var n = obTbody.querySelectorAll("tr").length;
+        obContactsCount.textContent = n + " contact" + (n !== 1 ? "s" : "");
+      }
+
+      function esc(s) { return (s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+
+      function collectContactsFromTable() {
+        var rows = obTbody.querySelectorAll("tr");
+        var contacts = [];
+        rows.forEach(function (tr) {
+          var phone = (tr.querySelector(".ob-c-phone") || {}).value || "";
+          if (!phone.trim()) return;
+          var extraRaw = (tr.querySelector(".ob-c-extra") || {}).value || "";
+          var custom = {};
+          if (extraRaw.trim()) { try { custom = JSON.parse(extraRaw); } catch (_) { custom = {}; } }
+          contacts.push({
+            name: ((tr.querySelector(".ob-c-name") || {}).value || "").trim(),
+            phone: phone.trim(),
+            email: ((tr.querySelector(".ob-c-email") || {}).value || "").trim(),
+            custom_fields: custom,
+          });
+        });
+        return contacts;
+      }
+
+      // Load built-in campaign type presets
+      function loadCampaignTypes() {
+        fetch(obUrl("/outbound/campaign-types"), { headers: obHeaders(false), credentials: "include" })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(r.statusText || r.status)); })
+          .then(function (data) {
+            campaignTypes = data.campaign_types || {};
+            var keys = Object.keys(campaignTypes);
+            if (keys.length === 0) return;
+            obTypeSelect.innerHTML = "";
+            keys.forEach(function (key) {
+              var opt = document.createElement("option");
+              opt.value = key;
+              opt.textContent = campaignTypes[key].label || key;
+              obTypeSelect.appendChild(opt);
+            });
+          }).catch(function (err) {
+            console.warn("Failed to load campaign types:", err.message || err);
+          });
+      }
+
+      // Load campaigns list
+      function loadCampaigns() {
+        obListStatus.textContent = "Loading…";
+        obListEl.innerHTML = "";
+        fetch(obUrl("/outbound/campaigns"), { headers: obHeaders(false), credentials: "include" })
+          .then(function (r) {
+            if (r.status === 403) { obListStatus.textContent = "Outbound calling not enabled."; return null; }
+            if (!r.ok) throw new Error(r.statusText);
+            return r.json();
+          })
+          .then(function (data) {
+            if (!data) return;
+            obListStatus.textContent = data.total ? data.total + " campaign" + (data.total !== 1 ? "s" : "") : "No campaigns yet.";
+            (data.campaigns || []).forEach(function (c) {
+              var li = document.createElement("li");
+              li.dataset.id = c.id;
+              li.innerHTML = '<span class="ob-c-name">' + esc(c.name) + '</span><span class="ob-c-type">' + esc(c.campaign_type) + '</span><span class="ob-badge ' + c.status + '">' + c.status + '</span>';
+              li.addEventListener("click", function () { loadAndEditCampaign(c.id); });
+              obListEl.appendChild(li);
+            });
+          })
+          .catch(function (err) { obListStatus.textContent = "Error: " + err.message; });
+      }
+
+      function loadAndEditCampaign(id) {
+        obFooterStatus.textContent = "Loading…";
+        fetch(obUrl("/outbound/campaigns/" + id), { headers: obHeaders(false), credentials: "include" })
+          .then(function (r) { if (!r.ok) throw new Error(r.statusText); return r.json(); })
+          .then(function (data) { showEditorView(data.campaign); obFooterStatus.textContent = ""; })
+          .catch(function (err) { obFooterStatus.textContent = "Error: " + err.message; });
+      }
+
+      // Save draft (create or update)
+      function saveDraft() {
+        var name = document.getElementById("ob-name").value.trim();
+        if (!name) { obFooterStatus.textContent = "Campaign name is required."; return; }
+        var payload = {
+          name: name,
+          campaign_type: obTypeSelect.value,
+          message_template: document.getElementById("ob-message").value,
+          concurrency: parseInt(document.getElementById("ob-concurrency").value, 10) || 1,
+        };
+        obFooterStatus.textContent = "Saving…";
+        var method = currentCampaignId ? "PATCH" : "POST";
+        var url = currentCampaignId ? "/outbound/campaigns/" + currentCampaignId : "/outbound/campaigns";
+        fetch(obUrl(url), { method: method, headers: obHeaders(true), body: JSON.stringify(payload), credentials: "include" })
+          .then(function (r) { if (!r.ok) return r.json().then(function (o) { throw new Error(o.detail || r.statusText); }); return r.json(); })
+          .then(function (data) {
+            var id = currentCampaignId || (data.campaign && data.campaign.id);
+            currentCampaignId = id;
+            var contacts = collectContactsFromTable();
+            if (contacts.length > 0 && id) {
+              return fetch(obUrl("/outbound/campaigns/" + id + "/contacts"), { method: "POST", headers: obHeaders(true), body: JSON.stringify({ contacts: contacts }), credentials: "include" })
+                .then(function (r2) { if (!r2.ok) return r2.json().then(function (o) { throw new Error(o.detail || r2.statusText); }); return r2.json(); })
+                .then(function () { obFooterStatus.textContent = "Saved."; loadAndEditCampaign(id); });
+            }
+            obFooterStatus.textContent = "Saved.";
+            if (id) loadAndEditCampaign(id);
+          })
+          .catch(function (err) { obFooterStatus.textContent = "Error: " + err.message; });
+      }
+
+      // Start campaign
+      function startCampaign() {
+        if (!currentCampaignId) return;
+        obFooterStatus.textContent = "Starting…";
+        fetch(obUrl("/outbound/campaigns/" + currentCampaignId + "/start"), { method: "POST", headers: obHeaders(true), credentials: "include" })
+          .then(function (r) { if (!r.ok) return r.json().then(function (o) { throw new Error(o.detail || r.statusText); }); return r.json(); })
+          .then(function () { obFooterStatus.textContent = "Campaign started."; loadAndEditCampaign(currentCampaignId); })
+          .catch(function (err) { obFooterStatus.textContent = "Error: " + err.message; });
+      }
+
+      // Pause campaign
+      function pauseCampaign() {
+        if (!currentCampaignId) return;
+        obFooterStatus.textContent = "Pausing…";
+        fetch(obUrl("/outbound/campaigns/" + currentCampaignId + "/pause"), { method: "POST", headers: obHeaders(true), credentials: "include" })
+          .then(function (r) { if (!r.ok) return r.json().then(function (o) { throw new Error(o.detail || r.statusText); }); return r.json(); })
+          .then(function () { obFooterStatus.textContent = "Paused."; loadAndEditCampaign(currentCampaignId); })
+          .catch(function (err) { obFooterStatus.textContent = "Error: " + err.message; });
+      }
+
+      // Progress polling (also refreshes contact rows when calling count drops so highlighted row updates)
+      var obLastCallingCount = 0;
+      function startProgressPolling() {
+        if (obPollTimer) clearInterval(obPollTimer);
+        obLastCallingCount = 0;
+        pollProgress();
+        obPollTimer = setInterval(pollProgress, 4000);
+      }
+      function pollProgress() {
+        if (!currentCampaignId) return;
+        fetch(obUrl("/outbound/campaigns/" + currentCampaignId + "/status"), { headers: obHeaders(false), credentials: "include" })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+            if (!data) return;
+            var p = data.progress || {};
+            var total = p.total || 0;
+            var calling = p.calling || 0;
+            var completed = (p.completed || 0) + (p.failed || 0) + (p.skipped || 0);
+            var pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+            obProgressFill.style.width = pct + "%";
+            obProgressText.textContent = completed + "/" + total + " done" + (calling ? " (" + calling + " calling)" : "") + (p.failed ? " — " + p.failed + " failed" : "");
+            obProgress.style.display = "";
+            if (obLastCallingCount > 0 && calling === 0) {
+              loadCampaignEditor(currentCampaignId);
+            }
+            obLastCallingCount = calling;
+            if (data.campaign_status === "completed" || data.campaign_status === "paused") {
+              if (obPollTimer) { clearInterval(obPollTimer); obPollTimer = null; }
+              obPauseBtn.style.display = "none";
+              obStartBtn.style.display = (data.campaign_status === "paused" || data.campaign_status === "completed") ? "" : "none";
+            }
+          }).catch(function () { });
+      }
+
+      // Excel/CSV upload via SheetJS
+      function handleFileUpload(e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function (evt) {
+          try {
+            if (typeof XLSX === "undefined") { obFooterStatus.textContent = "SheetJS not loaded yet. Try again."; return; }
+            var wb = XLSX.read(evt.target.result, { type: "array" });
+            var ws = wb.Sheets[wb.SheetNames[0]];
+            var rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+            rows.forEach(function (row) {
+              var name = row.name || row.Name || row.NAME || "";
+              var phone = row.phone || row.Phone || row.PHONE || row.phone_number || row.mobile || "";
+              var email = row.email || row.Email || row.EMAIL || "";
+              var extra = {};
+              Object.keys(row).forEach(function (k) {
+                var kl = k.toLowerCase();
+                if (["name", "phone", "email", "phone_number", "mobile"].indexOf(kl) < 0) extra[k] = row[k];
+              });
+              if (phone) addContactRow(String(name), String(phone), String(email), JSON.stringify(extra), "", "");
+            });
+            obFooterStatus.textContent = rows.length + " rows imported.";
+          } catch (err) { obFooterStatus.textContent = "File parse error: " + err.message; }
+        };
+        reader.readAsArrayBuffer(file);
+        e.target.value = "";
+      }
+
+      // Type change: prefill script (always updates for new campaigns; clears if type has no script)
+      obTypeSelect.addEventListener("change", function () {
+        if (currentCampaignId) return;
+        var cfg = campaignTypes[obTypeSelect.value] || {};
+        document.getElementById("ob-message").value = cfg.default_script || "";
+      });
+
+      // Wire up events
+      document.getElementById("outbound-btn").addEventListener("click", function () { loadCampaignTypes(); openOutboundModal(); });
+      document.getElementById("outbound-modal-close").addEventListener("click", closeOutboundModal);
+      document.getElementById("ob-cancel-btn").addEventListener("click", closeOutboundModal);
+      obModal.addEventListener("click", function (e) { if (e.target === obModal) closeOutboundModal(); });
+      document.getElementById("ob-new-campaign-btn").addEventListener("click", function () { showEditorView(null); });
+      document.getElementById("ob-back-to-list").addEventListener("click", showListView);
+      document.getElementById("ob-add-row").addEventListener("click", function () { addContactRow("", "", "", "", "", ""); });
+      document.getElementById("ob-file-upload").addEventListener("change", handleFileUpload);
+      obSaveBtn.addEventListener("click", saveDraft);
+      obStartBtn.addEventListener("click", startCampaign);
+      obPauseBtn.addEventListener("click", pauseCampaign);
+    })();
+
+    // =========================================================================
+    // Missed calls module — list, call back with AI, click-to-call, mark handled
+    // =========================================================================
+    (function () {
+      var mcModal = document.getElementById("missed-calls-modal");
+      var mcBtn = document.getElementById("missed-calls-btn");
+      var mcBadge = document.getElementById("missed-calls-badge");
+      var mcTbody = document.getElementById("mc-tbody");
+      var mcListStatus = document.getElementById("mc-list-status");
+      var mcFooterStatus = document.getElementById("mc-footer-status");
+      var mcHoursSelect = document.getElementById("mc-hours");
+
+      function mcHeaders(json) {
+        var h = {};
+        if (json) h["Content-Type"] = "application/json";
+        if (window.DASHBOARD_KEY) h["X-Dashboard-Key"] = window.DASHBOARD_KEY;
+        return h;
+      }
+      function mcUrl(path) {
+        var u = path;
+        if (window.DASHBOARD_KEY) u += (u.indexOf("?") >= 0 ? "&" : "?") + "key=" + encodeURIComponent(window.DASHBOARD_KEY);
+        return u;
+      }
+      function mcEsc(s) {
+        return (s == null ? "" : String(s)).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function mcFormatDuration(sec) {
+        sec = parseInt(sec, 10) || 0;
+        if (sec <= 0) return "—";
+        if (sec < 60) return sec + "s";
+        var m = Math.floor(sec / 60); var s = sec % 60;
+        return m + "m " + (s < 10 ? "0" : "") + s + "s";
+      }
+      function mcFormatReason(reason) {
+        var map = {
+          "no-answer": "No answer",
+          "busy": "Busy",
+          "failed": "Failed",
+          "canceled": "Canceled",
+          "no_call_record_captured": "Dropped on AI"
+        };
+        return map[reason] || reason || "—";
+      }
+
+      function setBadge(n) {
+        if (!mcBadge) return;
+        var count = parseInt(n, 10) || 0;
+        mcBadge.textContent = count > 99 ? "99+" : String(count);
+        if (count > 0) mcBadge.classList.add("visible");
+        else mcBadge.classList.remove("visible");
+      }
+
+      function renderList(items, twilioNumber) {
+        if (!items || items.length === 0) {
+          mcTbody.innerHTML = '<tr><td colspan="5" class="mc-empty">No missed calls in this window.</td></tr>';
+          return;
+        }
+        var rows = items.map(function (it) {
+          var from = it.from_number || "—";
+          var telHref = (from && from.charAt(0) === "+") ? "tel:" + from : ("tel:" + (from || "").replace(/[^0-9+]/g, ""));
+          var dangerAi = (!window.DASHBOARD_KEY && !it.call_sid);
+          var timeStr = formatTime(it.start_time);
+          var reasonClass = "mc-reason mc-reason-" + mcEsc(it.reason || "");
+          var sid = mcEsc(it.call_sid || "");
+          var fromEsc = mcEsc(from);
+          return (
+            '<tr data-call-sid="' + sid + '" data-phone="' + fromEsc + '">' +
+              '<td>' + mcEsc(timeStr) + '</td>' +
+              '<td>' + fromEsc + '</td>' +
+              '<td>' + mcEsc(mcFormatDuration(it.duration_sec)) + '</td>' +
+              '<td><span class="' + reasonClass + '">' + mcEsc(mcFormatReason(it.reason)) + '</span></td>' +
+              '<td>' +
+                '<div class="mc-actions">' +
+                  '<button type="button" class="mc-btn-ai" data-action="call-ai"' + (dangerAi ? ' disabled' : '') + '>Call with AI</button>' +
+                  '<a class="mc-btn mc-btn-tel" href="' + mcEsc(telHref) + '">Call yourself</a>' +
+                  '<button type="button" class="mc-btn-handled" data-action="handled">Mark handled</button>' +
+                '</div>' +
+              '</td>' +
+            '</tr>'
+          );
+        }).join("");
+        mcTbody.innerHTML = rows;
+      }
+
+      function loadList() {
+        var hours = parseInt(mcHoursSelect.value, 10) || 72;
+        mcListStatus.textContent = "Loading…";
+        mcListStatus.className = "status";
+        mcTbody.innerHTML = '<tr><td colspan="5" class="mc-empty">Loading…</td></tr>';
+        return fetch(mcUrl("/missed-calls?hours=" + hours + "&limit=200"), { headers: mcHeaders(false) })
+          .then(function (r) {
+            if (!r.ok) return r.text().then(function (t) { throw new Error("HTTP " + r.status + ": " + t); });
+            return r.json();
+          })
+          .then(function (data) {
+            var items = (data && data.missed_calls) || [];
+            renderList(items, (data && data.twilio_number) || "");
+            setBadge(items.length);
+            mcListStatus.textContent = items.length + " missed call" + (items.length === 1 ? "" : "s");
+            mcListStatus.className = "status";
+          })
+          .catch(function (e) {
+            mcListStatus.textContent = "Failed to load: " + (e && e.message ? e.message : "error");
+            mcListStatus.className = "status error";
+            mcTbody.innerHTML = '<tr><td colspan="5" class="mc-empty">Failed to load missed calls.</td></tr>';
+          });
+      }
+
+      function openModal() {
+        mcModal.classList.add("open");
+        loadList();
+      }
+      function closeModal() {
+        mcModal.classList.remove("open");
+      }
+      window.closeMissedCallsModal = closeModal;
+
+      mcTbody.addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-action]");
+        if (!btn) return;
+        var tr = btn.closest("tr[data-call-sid]");
+        if (!tr) return;
+        var callSid = tr.getAttribute("data-call-sid");
+        var phone = tr.getAttribute("data-phone") || "";
+        var action = btn.getAttribute("data-action");
+
+        if (action === "call-ai") {
+          if (btn.disabled) return;
+          btn.disabled = true;
+          btn.textContent = "Calling…";
+          mcFooterStatus.textContent = "";
+          mcFooterStatus.className = "status";
+          fetch(mcUrl("/missed-calls/" + encodeURIComponent(callSid) + "/callback-ai"), {
+            method: "POST",
+            headers: mcHeaders(true),
+            body: JSON.stringify({ phone: phone }),
+          })
+            .then(function (r) {
+              if (!r.ok) return r.text().then(function (t) { throw new Error("HTTP " + r.status + ": " + t); });
+              return r.json();
+            })
+            .then(function (data) {
+              mcFooterStatus.textContent = (data && data.message) || "Call started";
+              mcFooterStatus.className = "status success";
+              btn.textContent = "Called";
+            })
+            .catch(function (err) {
+              btn.disabled = false;
+              btn.textContent = "Call with AI";
+              mcFooterStatus.textContent = "Failed: " + (err && err.message ? err.message : "error");
+              mcFooterStatus.className = "status error";
+            });
+        } else if (action === "handled") {
+          btn.disabled = true;
+          fetch(mcUrl("/missed-calls/" + encodeURIComponent(callSid) + "/handled"), {
+            method: "POST",
+            headers: mcHeaders(true),
+            body: JSON.stringify({ phone: phone }),
+          })
+            .then(function (r) {
+              if (!r.ok) return r.text().then(function (t) { throw new Error("HTTP " + r.status + ": " + t); });
+              return r.json();
+            })
+            .then(function () {
+              tr.parentNode.removeChild(tr);
+              var remaining = mcTbody.querySelectorAll("tr[data-call-sid]").length;
+              setBadge(remaining);
+              mcListStatus.textContent = remaining + " missed call" + (remaining === 1 ? "" : "s");
+              if (remaining === 0) {
+                mcTbody.innerHTML = '<tr><td colspan="5" class="mc-empty">No missed calls in this window.</td></tr>';
+              }
+            })
+            .catch(function (err) {
+              btn.disabled = false;
+              mcFooterStatus.textContent = "Failed: " + (err && err.message ? err.message : "error");
+              mcFooterStatus.className = "status error";
+            });
+        }
+      });
+
+      mcBtn.addEventListener("click", openModal);
+      document.getElementById("missed-calls-modal-close").addEventListener("click", closeModal);
+      document.getElementById("mc-close-btn").addEventListener("click", closeModal);
+      document.getElementById("mc-refresh-btn").addEventListener("click", loadList);
+      mcHoursSelect.addEventListener("change", loadList);
+      mcModal.addEventListener("click", function (e) { if (e.target === mcModal) closeModal(); });
+
+      /* No background polling: GET /missed-calls only when user opens modal, changes lookback, or clicks Refresh. */
+      setBadge(0);
+    })();
+
+    loadCallRecords().then(function () {
+      if (!document.hidden) {
+        startPolling();
+        startCallRecordsSse();
+      }
+    });
+  </script>
+  <!-- SheetJS for Excel/CSV parsing (loaded async, only used by outbound modal) -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" async></script>
+</body>
+
+</html>
